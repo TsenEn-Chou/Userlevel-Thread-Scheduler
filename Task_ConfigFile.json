@@ -1,0 +1,19 @@
+{
+	"Jobs":[
+		{
+			"job name" : "P_Hello",
+			"entry function" : "function1",
+			"priority": "L"
+		},
+		{
+			"job name" : "CalcAvg",
+			"entry function" : "function2",
+			"priority": "H"
+		},
+		{
+			"job name" : "BFS",
+			"entry function" : "function3",
+			"priority": "M"
+		}
+	]
+}
