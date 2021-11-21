@@ -1,0 +1,5 @@
+simulator.dSYM/Contents/Info.plist
+simulator.dSYM/Contents/Resources/DWARF/simulator
+.vscode/settings.json
+.vscode/tasks.json
+*.o
