@@ -44,12 +44,12 @@ ucontext_t timer_context;
 
 void CreateContext(ucontext_t *context, ucontext_t *next_context, void *func)
 {
-	//getcontext(context);
+	getcontext(context);
 	context->uc_stack.ss_sp = malloc(STACK_SIZE);
 	context->uc_stack.ss_size = STACK_SIZE;
 	context->uc_stack.ss_flags = 0;
 	context->uc_link = next_context;
-	//makecontext(context,(void (*)(void))func,0);
+	makecontext(context,(void (*)(void))func,0);
 }
 
 void InitAllQueues(){
@@ -70,7 +70,7 @@ int OS2021_ThreadCreate(char *job_name, char *p_function, int priority, int canc
 	data->in_ready_q = 1;
 	strncpy(data->job_name, job_name, strlen(job_name) + 1);
 	data->priority = priority;
-	//CreateContext(&data->thread_context, &timer_context, &RunTask);
+	CreateContext(&data->thread_context, &timer_context, &RunTask);
 	InsertTailNode(ready_queue,data);
 	return data->tid;
 }
