@@ -2,7 +2,7 @@
 #define LIST_H
 
 #include <stdio.h>
-#include <ucontext.h>
+//#include <ucontext.h>
 #include <sys/time.h>
 #include <signal.h>
 #include <unistd.h>
@@ -32,7 +32,7 @@ struct ThreadControlBlock {
 	unsigned int waiting_time;
 	bool in_ready_q;
 	bool cancel_mode;// 1 = Deferred cancellation, 0 = Asynchronous cancellation
-	ucontext_t thread_context;
+	//ucontext_t thread_context;
 	TCB *next_tcb;
 };
 
@@ -44,8 +44,8 @@ struct ListItem {
 };
 
 void InitQueue(list_t *queue);
-void InsertTailNode(list_t *queue, TCB *node, bool to_ready_q);
+void InsertTailNode(list_t *queue, TCB *node);
 TCB* CutNode(list_t *queue, TCB **Next);
 void GetTailNode(list_t *queue,int priority);
-void *FindNode(list_t *queue, char *job_name);
+TCB *FindNode(list_t *queue, char *job_name);
  #endif

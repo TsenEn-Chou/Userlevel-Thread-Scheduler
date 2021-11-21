@@ -1,11 +1,11 @@
-#include "OS2021_API.h"
+#include "os2021_api.h"
 
 // H = 0, M = 1, L = 2
-list_t ready_queue[3] = {NULL};
-list_t waiting_queue[3] = {NULL};
-list_t terminate_queue = {NULL};
+list_t ready_queue[3] = {0};
+list_t waiting_queue[3] = {0};
+list_t terminate_queue = {0};
 
-TCB *running_thread = {NULL};
+TCB *running_thread = {0};
 
 const static entry_function_t funct_adr[7] = {
 	0,
@@ -17,12 +17,12 @@ const static entry_function_t funct_adr[7] = {
 	function6
 };
 
-const static char *state_str[4] = {
-	"THREAD_RUNNING",
-	"THREAD_READY",
-	"THREAD_WAITING",
-	"THREAD_TERMINATED"
-};
+// const static char *state_str[4] = {
+// 	"THREAD_RUNNING",
+// 	"THREAD_READY",
+// 	"THREAD_WAITING",
+// 	"THREAD_TERMINATED"
+// };
 
 int tidMax = 0;
 
@@ -44,14 +44,18 @@ ucontext_t timer_context;
 
 void CreateContext(ucontext_t *context, ucontext_t *next_context, void *func)
 {
-	getcontext(context);
+	//getcontext(context);
 	context->uc_stack.ss_sp = malloc(STACK_SIZE);
 	context->uc_stack.ss_size = STACK_SIZE;
 	context->uc_stack.ss_flags = 0;
 	context->uc_link = next_context;
-	makecontext(context,(void (*)(void))func,0);
+	//makecontext(context,(void (*)(void))func,0);
 }
 
+void InitAllQueues(){
+	InitQueue(ready_queue);
+	InitQueue(waiting_queue);
+}
 
 int OS2021_ThreadCreate(char *job_name, char *p_function, int priority, int cancel_mode){
 	if (p_function[8] < '1' || p_function[8] > '6')
@@ -66,8 +70,8 @@ int OS2021_ThreadCreate(char *job_name, char *p_function, int priority, int canc
 	data->in_ready_q = 1;
 	strncpy(data->job_name, job_name, strlen(job_name) + 1);
 	data->priority = priority;
-	CreateContext(&data->thread_context, &timer_context, &RunTask);
-	InsertTailNode(data,1);
+	//CreateContext(&data->thread_context, &timer_context, &RunTask);
+	InsertTailNode(ready_queue,data);
 	return data->tid;
 }
 
