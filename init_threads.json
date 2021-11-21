@@ -3,17 +3,20 @@
 		{
 			"job name" : "P_Hello",
 			"entry function" : "function1",
-			"priority": "L"
+			"priority": "L",
+			"cancel mode": "D"
 		},
 		{
 			"job name" : "CalcAvg",
 			"entry function" : "function2",
-			"priority": "H"
+			"priority": "H",
+			"cancel mode": "A"
 		},
 		{
 			"job name" : "BFS",
 			"entry function" : "function3",
-			"priority": "M"
+			"priority": "M",
+			"cancel mode":"A" 
 		}
 	]
 }
