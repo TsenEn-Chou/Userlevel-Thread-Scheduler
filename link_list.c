@@ -1,4 +1,4 @@
-#include "list.h"
+#include "link_list.h"
 
 void InitQueue(list_t *queue) {
 	int i;
