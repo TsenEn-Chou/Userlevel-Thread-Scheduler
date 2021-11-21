@@ -32,7 +32,7 @@ struct ThreadControlBlock {
 	unsigned int waiting_time;
 	bool in_ready_q;
 	bool cancel_mode;// 1 = Deferred cancellation, 0 = Asynchronous cancellation
-	//ucontext_t thread_context;
+	ucontext_t thread_context;
 	TCB *next_tcb;
 };
 
