@@ -1,6 +1,7 @@
 #!/bin/bash
 
-ASTYLE_OPTS="--style=kr --indent=spaces=4"
+
+ASTYLE_OPTS="--style=java --indent=spaces=4"
 CPPCHECK_OPTS="-I. --error-exitcode=1 ."
 
 RETURN=0
