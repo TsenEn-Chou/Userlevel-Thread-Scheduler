@@ -1,7 +1,7 @@
 #ifndef FUNCTION_LIBARY_H
 #define FUNCTION_LIBARY_H
 
-#include "os2021_api.h"
+#include "os2021_thread_api.h"
 
 void function1(void);
 void function2(void);
