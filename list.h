@@ -47,5 +47,5 @@ void InitQueue(list_t *queue);
 void InsertTailNode(list_t *queue, TCB *node);
 TCB* CutNode(list_t *queue, TCB **Next);
 void GetTailNode(list_t *queue,int priority);
-TCB *FindNode(list_t *queue, char *job_name);
+TCB **FindNode(list_t *queue, char *job_name);
  #endif

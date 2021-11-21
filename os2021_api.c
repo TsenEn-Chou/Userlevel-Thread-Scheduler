@@ -76,14 +76,12 @@ int OS2021_ThreadCreate(char *job_name, char *p_function, int priority, int canc
 }
 
 void OS2021_ThreadCancel(char *job_name){
-	TCB *cancel_node = FindNode(ready_queue, job_name);
+	TCB **cancel_node = FindNode(ready_queue, job_name);
 	if(cancel_node){
-		fprintf(stdout, "%s" , cancel_node->job_name);
-		fflush(stdout);
+		CutNode(ready_queue, cancel_node);
 	}else{
 		cancel_node	= FindNode(waiting_queue, job_name);
-		fprintf(stdout, "%s" , cancel_node->job_name);
-		fflush(stdout);
+		CutNode(ready_queue, cancel_node);
 	}
 	
 }

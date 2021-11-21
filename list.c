@@ -48,16 +48,16 @@ void GetTailNode(list_t *queue, int priority) {
 	
 }
 
-TCB *FindNode(list_t *queue, char *job_name) {
+TCB **FindNode(list_t *queue, char *job_name) {
 	int i;
-	register TCB *ptr;
+	register TCB **ptr;
 	for (i = 0; i < 3; i++) {
-		ptr = queue[i].head->next_tcb;
+		ptr = &(queue[i].head->next_tcb);
 		printf("%d\n",i);
-		while (ptr) {
-			if (strcmp(ptr->job_name,job_name) == 0)
+		while (*ptr) {
+			if (strcmp((*ptr)->job_name,job_name) == 0)
 				return ptr;
-			ptr = ptr->next_tcb;
+			ptr = &(*ptr)->next_tcb;
 		}
 	}
 	return NULL;
