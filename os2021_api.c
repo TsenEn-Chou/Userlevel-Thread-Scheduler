@@ -57,6 +57,15 @@ void InitAllQueues(){
 	InitQueue(waiting_queue);
 }
 
+int CheckBitMap(list_t *queue){
+	int i;
+	for (i = 0; i < 3; i++) {
+		if(queue[i].have_node)
+			return i;
+	}
+	return -1;
+}
+
 int OS2021_ThreadCreate(char *job_name, char *p_function, int priority, int cancel_mode){
 	if (p_function[8] < '1' || p_function[8] > '6')
 		return -1;
