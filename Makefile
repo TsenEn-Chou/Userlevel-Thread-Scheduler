@@ -1,15 +1,23 @@
-TARGETS = scheduling_simulator
-CC = gcc
+TARGETS = main
+CC := gcc
 CFLAGS += -std=gnu99 -g -Wall
-OBJS = scheduling_simulator.o task.o
+OBJS = main.o list.o
 
-all:$(TARGETS)
+GIT_HOOKS := .git/hooks/applied
+
+all: $(GIT_HOOKS) $(TARGETS)
+
+$(GIT_HOOKS):
+	@.githooks/install-git-hooks
+	@echo
 
 $(TARGETS):$(OBJS)
-	$(CC) $(CFLAGS) -o scheduling_simulator $(OBJS)
+	$(CC) $(CFLAGS) -o main $(OBJS)
 
 $(OBJS): %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
+.PHONY: clean
 clean:
-	rm -rf *.o scheduling_simulator
+	rm *.o 
+	
