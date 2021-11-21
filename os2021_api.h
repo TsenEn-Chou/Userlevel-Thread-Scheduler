@@ -8,6 +8,7 @@
 
 void CreateContext(ucontext_t *, ucontext_t *, void *);
 void InitAllQueues();
+int CheckBitMap(list_t *queue);
 
 int OS2021_ThreadCreate(char *job_name, char *p_function, int priority, int cancel_mode);
 void OS2021_ThreadCancel(char *job_name);

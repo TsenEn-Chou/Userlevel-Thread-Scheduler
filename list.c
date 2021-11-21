@@ -15,9 +15,9 @@ void InsertTailNode(list_t *queue, TCB *node) {
 
 	if (queue[node->priority].tail == NULL) {
 		queue[node->priority].head->next_tcb = node;
+		queue[node->priority].have_node = true;
 	} else
 		queue[node->priority].tail->next_tcb = node;
-
 	queue[node->priority].tail = node;
 	node->next_tcb = NULL;
 }
@@ -27,6 +27,7 @@ TCB* CutNode(list_t *queue, TCB **node) {
 
 	if (queue[cut->priority].tail == cut) {
 		(*node) = NULL;
+		queue[(*node)->priority].have_node = false;
 		GetTailNode(queue, cut->priority);
 		return cut;
 	} else {
