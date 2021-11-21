@@ -1,4 +1,4 @@
-#include "os2021_api.h"
+#include "os2021_thread_api.h"
 
 // H = 0, M = 1, L = 2
 list_t ready_queue[3] = {0};
