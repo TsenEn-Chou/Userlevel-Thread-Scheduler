@@ -142,3 +142,24 @@ void OS2021_ThreadWaitEvent(int event_id){
 	InsertTailNode(event_queue,running);
 
 }
+void OS2021_ThreadSetEvent(int event_id){
+	int i;
+	register TCB **ptr;
+	register TCB *tmp;
+	for(i = 0;i < 3; i++){
+		if(CheckQueueHaveNode(event_queue,i)){
+			ptr = &(event_queue[i].head->next_tcb);
+			while(*ptr){
+				if((*ptr)->wait_evnt == event_id){
+					(*ptr)->state = kThreadReady;
+					(*ptr)->wait_evnt = -1;
+					tmp = CutNode(ready_queue, ptr);
+					InsertTailNode(event_queue,tmp);
+					break;
+				}
+				ptr = &(*ptr)->next_tcb;
+			}	
+		}	
+	}
+		
+}
