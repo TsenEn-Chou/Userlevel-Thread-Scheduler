@@ -247,3 +247,26 @@ void TimerCalc()
 		setcontext(&dispatch_context);
 }
 
+void Dispatcher()
+{
+	int i = CheckBitMap(ready_queue);
+	int j = CheckBitMap(waiting_queue);
+	int k = CheckBitMap(event_queue);
+	if ( i == -1 && j == -1 && k == -1) {
+		exit(0);	
+	} 
+
+	//register TCB **ptr = &running_thread;
+
+	for( i = 0 ; i<3 ; i++){
+		j = CheckBitMap(ready_queue);
+		if( j != -1){
+			running_thread = ready_queue[j].head->next_tcb;
+			running_thread->state = kThreadRunning;
+			running_thread->thread_time.runable_time = AssignTQ(running_thread);
+			setcontext(&running_thread->thread_context);	
+		}
+	}
+	while(1);
+}
+
