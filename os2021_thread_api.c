@@ -116,6 +116,7 @@ int OS2021_ThreadCreate(char *job_name, char *p_function, int priority, int canc
 	strncpy(data->job_name, job_name, strlen(job_name) + 1);
 	data->base_priority = priority;
 	data->current_priority = priority;// Priority changes priority based on thread behavior
+	data->wait_evnt = -1;
 	CreateContext(&data->thread_context, &timer_context, &RunTask);
 	InsertTailNode(ready_queue,data);
 	return data->tid;
