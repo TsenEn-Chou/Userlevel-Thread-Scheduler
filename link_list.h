@@ -34,6 +34,7 @@ struct ThreadControlBlock {
 	unsigned int tid;
 	char *job_name;
 	int base_priority;// H = 0, M = 1, L = 2
+	int current_priority;
 	enum ThreadState state;
 	entry_function_t p_function;	
 	TimeGroup thread_time;
