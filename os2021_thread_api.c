@@ -68,6 +68,11 @@ int CheckBitMap(list_t *queue){
 	return -1;
 }
 
+int CheckQueueHaveNode(list_t *queue, int priority){
+	if(queue[priority].have_node)
+		return 1;
+	return 0;
+}
 int OS2021_ThreadCreate(char *job_name, char *p_function, int priority, int cancel_mode){
 	if (p_function[8] < '1' || p_function[8] > '6')
 		return -1;
