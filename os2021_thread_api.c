@@ -165,14 +165,20 @@ void OS2021_ThreadSetEvent(int event_id){
 }
 
 void OS2021_ThreadWaitTime(int msec){
+	register TCB *ptr;
 	running_thread->state = kThreadWaiting;
 	running_thread->thread_time.sleep_time = msec * 10;
+	ptr = CutNode(ready_queue, &running_thread);
+	InsertTailNode(waiting_queue, ptr);
 	swapcontext(&running_thread->thread_context, &timer_context);
 }
 
 void TimerCalc()
 {
+	ResetTimer(0);
 	register TCB *ptr;
+	register TCB **p_ptr;
+	register TCB *running;
 	int i = CheckBitMap(ready_queue);
 	int j = CheckBitMap(waiting_queue);
 	int k = CheckBitMap(event_queue);
@@ -211,12 +217,14 @@ void TimerCalc()
 
 	for(i = 0 ; i < 3 ; i++){
 		if(CheckQueueHaveNode(waiting_queue,i)) {
-			ptr = waiting_queue[i].head->next_tcb;
-			while(ptr){
-				if(ptr->thread_time.sleep_time <=0){
-					ptr->state = kThreadReady;
+			p_ptr = &waiting_queue[i].head->next_tcb;
+			while(*p_ptr){
+				if((*p_ptr)->thread_time.sleep_time <=0){
+					(*p_ptr)->state = kThreadReady;
+					ptr = CutNode(ready_queue, p_ptr);
+					InsertTailNode(ready_queue, ptr);	
 				}
-				ptr = ptr->next_tcb;
+				p_ptr = &(*p_ptr)->next_tcb;
 			}
 		}
 	}
@@ -227,8 +235,10 @@ void TimerCalc()
 			running_thread->state = kThreadReady;
 			if(running_thread->current_priority < 2){
 				running_thread->current_priority += 1; // Time quantum is used up, increase priority
+				fprintf(stdout,"%s change priority to %d",running_thread->job_name,running_thread->current_priority);
+				fflush(stdout);
 			}
-			register TCB *running = CutNode(ready_queue, &running_thread);
+			running = CutNode(ready_queue, &running_thread);
 			InsertTailNode(ready_queue, running);
 		}
 	}
@@ -257,15 +267,13 @@ void Dispatcher()
 
 	//register TCB **ptr = &running_thread;
 
-	for( i = 0 ; i<3 ; i++){
-		j = CheckBitMap(ready_queue);
-		if( j != -1){
-			running_thread = ready_queue[j].head->next_tcb;
-			running_thread->state = kThreadRunning;
-			running_thread->thread_time.runable_time = AssignTQ(running_thread);
-			setcontext(&running_thread->thread_context);	
-		}
-	}
+	
+	j = CheckBitMap(ready_queue);
+	running_thread = ready_queue[j].head->next_tcb;
+	running_thread->state = kThreadRunning;
+	running_thread->thread_time.runable_time = AssignTQ(running_thread);
+	setcontext(&running_thread->thread_context);	
+
 	while(1);
 }
 
@@ -298,7 +306,6 @@ void StartSchedulingSimulation(){
 	Signaltimer.it_interval.tv_usec = 0;
 	Signaltimer.it_interval.tv_sec = 0;
 	ResetTimer(0);
-	signal(SIGALRM, ResetTimer);
 	/*Create Context*/
 	CreateContext(&dispatch_context, &timer_context, &Dispatcher);
 	CreateContext(&timer_context, &dispatch_context, &TimerCalc);
