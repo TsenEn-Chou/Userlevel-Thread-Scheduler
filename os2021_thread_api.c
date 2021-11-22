@@ -6,7 +6,7 @@ list_t waiting_queue[3] = {0};
 list_t event_queue[3] = {0};
 list_t terminate_queue = {0};
 
-TCB *running_thread = {0};
+TCB **running_thread = {0};
 
 const static entry_function_t funct_adr[7] = {
 	0,
@@ -93,10 +93,10 @@ int AssignTQ(TCB *node){
 void RunTask()
 {
 	int i = CheckBitMap(ready_queue);
-	running_thread = ready_queue[i].head->next_tcb;
-	running_thread->state = kThreadRunning;
-	running_thread->p_function();
-	register TCB *tmp = CutNode(&terminate_queue, &running_thread);
+	(*running_thread) = ready_queue[i].head->next_tcb;
+	(*running_thread)->state = kThreadRunning;
+	(*running_thread)->p_function();
+	register TCB *tmp = CutNode(&terminate_queue, running_thread);
 	tmp->state = kThreadTerminated;
 	InsertTailNode(&terminate_queue, tmp);
 	setcontext(&timer_context);
@@ -135,9 +135,9 @@ void OS2021_ThreadCancel(char *job_name){
 
 void OS2021_ThreadWaitEvent(int event_id){
 	register TCB *running;
-	running_thread->state = kThreadWaiting;
-	running_thread->wait_evnt = event_id;
-	running = CutNode(ready_queue, &running_thread);
+	(*running_thread)->state = kThreadWaiting;
+	(*running_thread)->wait_evnt = event_id;
+	running = CutNode(ready_queue, running_thread);
 	InsertTailNode(event_queue,running);
 
 }
@@ -166,11 +166,11 @@ void OS2021_ThreadSetEvent(int event_id){
 
 void OS2021_ThreadWaitTime(int msec){
 	register TCB *ptr;
-	running_thread->state = kThreadWaiting;
-	running_thread->thread_time.sleep_time = msec * 10;
-	ptr = CutNode(ready_queue, &running_thread);
+	(*running_thread)->state = kThreadWaiting;
+	(*running_thread)->thread_time.sleep_time = msec * 10;
+	ptr = CutNode(ready_queue, running_thread);
 	InsertTailNode(waiting_queue, ptr);
-	swapcontext(&running_thread->thread_context, &timer_context);
+	swapcontext(&(*running_thread)->thread_context, &timer_context);
 }
 
 void TimerCalc()
@@ -229,16 +229,16 @@ void TimerCalc()
 		}
 	}
 
-	if (running_thread->state == kThreadRunning) {
-		running_thread->thread_time.runable_time -= 10;
-		if (running_thread->thread_time.runable_time <= 0) {
-			running_thread->state = kThreadReady;
-			if(running_thread->current_priority < 2){
-				running_thread->current_priority += 1; // Time quantum is used up, increase priority
-				fprintf(stdout,"%s change priority to %d",running_thread->job_name,running_thread->current_priority);
+	if ((*running_thread)->state == kThreadRunning) {
+		(*running_thread)->thread_time.runable_time -= 10;
+		if ((*running_thread)->thread_time.runable_time <= 0) {
+			(*running_thread)->state = kThreadReady;
+			if((*running_thread)->current_priority < 2){
+				(*running_thread)->current_priority += 1; // Time quantum is used up, increase priority
+				fprintf(stdout,"%s change priority to %d",(*running_thread)->job_name, (*running_thread)->current_priority);
 				fflush(stdout);
 			}
-			running = CutNode(ready_queue, &running_thread);
+			running = CutNode(ready_queue, running_thread);
 			InsertTailNode(ready_queue, running);
 		}
 	}
@@ -250,8 +250,8 @@ void TimerCalc()
 	// 	raise(SIGTSTP);
 
 	//SET To Running or Dispatcher
-	if (running_thread->state == kThreadRunning)
-		setcontext(&running_thread->thread_context);
+	if ((*running_thread)->state == kThreadRunning)
+		setcontext(&(*running_thread)->thread_context);
 	else
 		setcontext(&dispatch_context);
 }
@@ -269,12 +269,10 @@ void Dispatcher()
 
 	
 	j = CheckBitMap(ready_queue);
-	running_thread = ready_queue[j].head->next_tcb;
-	running_thread->state = kThreadRunning;
-	running_thread->thread_time.runable_time = AssignTQ(running_thread);
-	setcontext(&running_thread->thread_context);	
-
-	while(1);
+	running_thread = &(ready_queue[j].head->next_tcb);
+	(*running_thread)->state = kThreadRunning;
+	(*running_thread)->thread_time.runable_time = AssignTQ(running_thread);
+	setcontext(&(*running_thread)->thread_context);	
 }
 
 void ResetTimer(int a)
@@ -295,8 +293,8 @@ void ALARM_Handler(int a)
 		exit(0);	
 	}
 
-	if (running_thread->state == kThreadRunning)
-		swapcontext(&running_thread->thread_context, &timer_context);
+	if ((*running_thread)->state == kThreadRunning)
+		swapcontext(&(*running_thread)->thread_context, &timer_context);
 	else
 		setcontext(&timer_context);
 }
