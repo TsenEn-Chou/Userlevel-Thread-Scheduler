@@ -24,7 +24,7 @@ typedef struct ThreadControlBlock TCB;
 struct ThreadControlBlock {
 	unsigned int tid;
 	char *job_name;
-	int priority;// H = 0, M = 1, L = 2
+	int base_priority;// H = 0, M = 1, L = 2
 	enum ThreadState state;
 	entry_function_t p_function;	
 	unsigned int queue_time;

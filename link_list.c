@@ -7,18 +7,15 @@ void InitQueue(list_t *queue) {
 		head->state = kFake;
 		head->next_tcb = NULL;
 		queue[i].head = head;
-
+		queue[i].have_node = false;
 	}
 }
 
 void InsertTailNode(list_t *queue, TCB *node) {
 
-	if (queue[node->priority].tail == NULL) {
-		queue[node->priority].head->next_tcb = node;
-		queue[node->priority].have_node = true;
+	if (queue[node->current_priority].tail == NULL) {
 	} else
-		queue[node->priority].tail->next_tcb = node;
-	queue[node->priority].tail = node;
+		queue[node->current_priority].tail->next_tcb = node;
 	node->next_tcb = NULL;
 }
 
