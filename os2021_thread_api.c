@@ -56,6 +56,7 @@ void CreateContext(ucontext_t *context, ucontext_t *next_context, void *func)
 void InitAllQueues(){
 	InitQueue(ready_queue);
 	InitQueue(waiting_queue);
+	InitQueue(event_queue);
 }
 
 int CheckBitMap(list_t *queue){
