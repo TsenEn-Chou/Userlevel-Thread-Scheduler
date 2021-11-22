@@ -18,6 +18,15 @@ enum ThreadState {
 	kFake
 };
 
+typedef struct TimeGroup TimeGroup; 
+struct TimeGroup {
+	unsigned int ready_q_time;// The time the thread stays in the ready queue
+	unsigned int waiting_q_time;// The time the thread stays in the waiting queue or event queue
+
+	unsigned int runable_time;//The time the thread can own the CPU
+	unsigned int sleep_time;//How long will the thread be awakened
+};
+
 typedef void (*entry_function_t)(void);
 
 typedef struct ThreadControlBlock TCB; 
@@ -27,10 +36,7 @@ struct ThreadControlBlock {
 	int base_priority;// H = 0, M = 1, L = 2
 	enum ThreadState state;
 	entry_function_t p_function;	
-	unsigned int queue_time;
-	unsigned int runable_time;
-	unsigned int waiting_time;
-	bool in_ready_q;
+	TimeGroup thread_time;
 	bool cancel_mode;// 1 = Deferred cancellation, 0 = Asynchronous cancellation
 	ucontext_t thread_context;
 	TCB *next_tcb;
