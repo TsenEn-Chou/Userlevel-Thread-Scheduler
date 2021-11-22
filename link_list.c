@@ -14,18 +14,21 @@ void InitQueue(list_t *queue) {
 void InsertTailNode(list_t *queue, TCB *node) {
 
 	if (queue[node->current_priority].tail == NULL) {
+		queue[node->current_priority].head->next_tcb = node;
+		queue[node->current_priority].have_node = true;
 	} else
 		queue[node->current_priority].tail->next_tcb = node;
+	queue[node->current_priority].tail = node;
 	node->next_tcb = NULL;
 }
 
-TCB* CutNode(list_t *queue, TCB **node) {
+TCB *CutNode(list_t *queue, TCB **node) {
 	register TCB *cut = (*node);
 
-	if (queue[cut->priority].tail == cut) {
+	if (queue[cut->current_priority].tail == cut) {
 		(*node) = NULL;
-		queue[(*node)->priority].have_node = false;
-		GetTailNode(queue, cut->priority);
+		queue[(*node)->current_priority].have_node = false;
+		GetTailNode(queue, cut->current_priority);
 		return cut;
 	} else {
 		(*node) = (cut->next_tcb);
