@@ -73,6 +73,23 @@ int CheckQueueHaveNode(list_t *queue, int priority){
 		return 1;
 	return 0;
 }
+
+int AssignTQ(TCB *node){
+	switch (node->current_priority){
+	case 0:
+		return 8;
+		break;
+	case 1:
+		return 16;
+		break;
+	case 2:
+		return 24;
+		break;	
+	default:
+		break;
+	}
+}
+
 int OS2021_ThreadCreate(char *job_name, char *p_function, int priority, int cancel_mode){
 	if (p_function[8] < '1' || p_function[8] > '6')
 		return -1;
