@@ -3,6 +3,7 @@
 // H = 0, M = 1, L = 2
 list_t ready_queue[3] = {0};
 list_t waiting_queue[3] = {0};
+list_t event_queue[3] = {0};
 list_t terminate_queue = {0};
 
 TCB *running_thread = {0};
