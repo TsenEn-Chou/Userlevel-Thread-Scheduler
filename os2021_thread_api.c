@@ -132,3 +132,13 @@ void OS2021_ThreadCancel(char *job_name){
 	}
 	
 }
+
+
+void OS2021_ThreadWaitEvent(int event_id){
+	register TCB *running;
+	running_thread->state = kThreadWaiting;
+	running_thread->wait_evnt = event_id;
+	running = CutNode(ready_queue, &running_thread);
+	InsertTailNode(event_queue,running);
+
+}
