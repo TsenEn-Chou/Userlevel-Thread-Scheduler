@@ -90,6 +90,18 @@ int AssignTQ(TCB *node){
 	}
 }
 
+void RunTask()
+{
+	int i = CheckBitMap(ready_queue);
+	running_thread = ready_queue[i].head->next_tcb;
+	running_thread->state = kThreadRunning;
+	running_thread->p_function();
+	register TCB *tmp = CutNode(&terminate_queue, &running_thread);
+	tmp->state = kThreadTerminated;
+	InsertTailNode(&terminate_queue, tmp);
+	setcontext(&timer_context);
+}
+
 int OS2021_ThreadCreate(char *job_name, char *p_function, int priority, int cancel_mode){
 	if (p_function[8] < '1' || p_function[8] > '6')
 		return -1;
