@@ -142,6 +142,7 @@ void OS2021_ThreadWaitEvent(int event_id){
 	InsertTailNode(event_queue,running);
 
 }
+
 void OS2021_ThreadSetEvent(int event_id){
 	int i;
 	register TCB **ptr;
