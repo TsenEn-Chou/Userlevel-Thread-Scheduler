@@ -172,3 +172,78 @@ void OS2021_ThreadWaitTime(int msec){
 }
 
 void TimerCalc()
+{
+	register TCB *ptr;
+	int i = CheckBitMap(ready_queue);
+	int j = CheckBitMap(waiting_queue);
+	int k = CheckBitMap(event_queue);
+	if ( i == -1 && j == -1 && k == -1) {
+		exit(0);	
+	} 
+	
+	for( i = 0 ; i < 3 ; i ++){
+		if(CheckQueueHaveNode(ready_queue,i)) {
+			ptr = ready_queue[i].head->next_tcb;
+			while(ptr){
+				if(ptr->state == kThreadReady) {
+					ptr->thread_time.ready_q_time += 10;
+					ptr = ptr->next_tcb;
+				}
+			}
+		}
+
+		if(CheckQueueHaveNode(waiting_queue,i)) {
+			ptr = waiting_queue[i].head->next_tcb;
+			while(ptr){
+				ptr->thread_time.waiting_q_time += 10;
+				ptr->thread_time.sleep_time -= 10;
+				ptr = ptr->next_tcb;
+			}
+		}
+
+		if(CheckQueueHaveNode(event_queue,i)) {
+			ptr = event_queue[i].head->next_tcb;
+			while(ptr){
+				ptr->thread_time.waiting_q_time += 10;
+				ptr = ptr->next_tcb;
+			}
+		}
+	}
+
+	for(i = 0 ; i < 3 ; i++){
+		if(CheckQueueHaveNode(waiting_queue,i)) {
+			ptr = waiting_queue[i].head->next_tcb;
+			while(ptr){
+				if(ptr->thread_time.sleep_time <=0){
+					ptr->state = kThreadReady;
+				}
+				ptr = ptr->next_tcb;
+			}
+		}
+	}
+
+	if (running_thread->state == kThreadRunning) {
+		running_thread->thread_time.runable_time -= 10;
+		if (running_thread->thread_time.runable_time <= 0) {
+			running_thread->state = kThreadReady;
+			if(running_thread->current_priority < 2){
+				running_thread->current_priority += 1; // Time quantum is used up, increase priority
+			}
+			register TCB *running = CutNode(ready_queue, &running_thread);
+			InsertTailNode(ready_queue, running);
+		}
+	}
+
+	// Alarming = false;
+
+	// //if simulate start raise(SIGTSTP);
+	// if (Simulating)
+	// 	raise(SIGTSTP);
+
+	//SET To Running or Dispatcher
+	if (running_thread->state == kThreadRunning)
+		setcontext(&running_thread->thread_context);
+	else
+		setcontext(&dispatch_context);
+}
+
