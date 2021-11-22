@@ -112,7 +112,6 @@ int OS2021_ThreadCreate(char *job_name, char *p_function, int priority, int canc
 	data->state = kThreadReady;
 	data->cancel_mode = cancel_mode;
 	data->job_name = malloc(strlen(job_name) + 1);// +1 mean append '\0' to job_name
-	data->in_ready_q = 1;
 	strncpy(data->job_name, job_name, strlen(job_name) + 1);
 	data->base_priority = priority;
 	data->current_priority = priority;// Priority changes priority based on thread behavior
