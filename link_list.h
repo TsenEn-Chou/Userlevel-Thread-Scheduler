@@ -39,6 +39,7 @@ struct ThreadControlBlock {
 	entry_function_t p_function;	
 	TimeGroup thread_time;
 	int wait_evnt;//wait event 0~7 , default = -1
+	bool kill;//1 = There is a thread trying to kill me
 	bool cancel_mode;// 1 = Deferred cancellation, 0 = Asynchronous cancellation
 	ucontext_t thread_context;
 	TCB *next_tcb;
