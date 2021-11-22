@@ -26,6 +26,7 @@ void ResetTimer(int a);
 void AlarmHandler(int a);
 void SigtstpHandler(int recv);
 
+void StartSchedulingSimulation();
 
 
 #endif

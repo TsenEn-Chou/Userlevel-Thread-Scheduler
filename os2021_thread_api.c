@@ -77,13 +77,13 @@ int CheckQueueHaveNode(list_t *queue, int priority){
 int AssignTQ(TCB *node){
 	switch (node->current_priority){
 	case 0:
-		return 8;
+		return 80;
 		break;
 	case 1:
-		return 16;
+		return 160;
 		break;
 	case 2:
-		return 24;
+		return 240;
 		break;	
 	default:
 		break;
@@ -166,7 +166,7 @@ void OS2021_ThreadSetEvent(int event_id){
 
 void OS2021_ThreadWaitTime(int msec){
 	running_thread->state = kThreadWaiting;
-	running_thread->thread_time.sleep_time = msec;
+	running_thread->thread_time.sleep_time = msec * 10;
 	swapcontext(&running_thread->thread_context, &timer_context);
 }
 
@@ -267,5 +267,43 @@ void Dispatcher()
 		}
 	}
 	while(1);
+}
+
+void ResetTimer(int a)
+{
+	Signaltimer.it_value.tv_sec = 0;
+	Signaltimer.it_value.tv_usec = 10000;
+	if (setitimer(ITIMER_REAL, &Signaltimer, NULL) < 0) {
+		printf("ERROR SETTING TIME SIGALRM!\n");
+	}
+}
+
+void ALARM_Handler(int a)
+{
+	int i = CheckBitMap(ready_queue);
+	int j = CheckBitMap(waiting_queue);
+	int k = CheckBitMap(event_queue);
+	if ( i == -1 && j == -1 && k == -1) {
+		exit(0);	
+	}
+
+	if (running_thread->state == kThreadRunning)
+		swapcontext(&running_thread->thread_context, &timer_context);
+	else
+		setcontext(&timer_context);
+}
+
+void StartSchedulingSimulation(){
+	/*Set Timer*/
+	Signaltimer.it_interval.tv_usec = 0;
+	Signaltimer.it_interval.tv_sec = 0;
+	ResetTimer(0);
+	signal(SIGALRM, ResetTimer);
+	/*Create Context*/
+	CreateContext(&dispatch_context, &timer_context, &Dispatcher);
+	CreateContext(&timer_context, &dispatch_context, &TimerCalc);
+	ResetTimer(0);
+	signal(SIGALRM, ALARM_Handler);
+	setcontext(&dispatch_context);
 }
 

@@ -24,8 +24,11 @@ void function2(void)
 
 void function3(void)
 {
-	// wait infinite
+	
 	fprintf(stdout, "task3: good morning~\n");
+	fflush(stdout);
+	OS2021_ThreadWaitTime(100);
+	fprintf(stdout, "task3: good morning again~\n");
 	fflush(stdout);
 }
 
@@ -34,12 +37,18 @@ void function4(void)
 	// sleep 5s
 	fprintf(stdout, "task4: good morning~\n");
 	fflush(stdout);
+	OS2021_ThreadWaitEvent(1);
+	fprintf(stdout, "task4: wake up by task5~\n");
+	fflush(stdout);
 }
 
 void function5(void)
 {
 
 	fprintf(stdout, "task5: good morning~\n");
+	fflush(stdout);
+	OS2021_ThreadSetEvent(1);
+	fprintf(stdout, "task4: wake up task4~\n");
 	fflush(stdout);
 
 }
