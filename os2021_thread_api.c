@@ -164,3 +164,11 @@ void OS2021_ThreadSetEvent(int event_id){
 	}
 		
 }
+
+void OS2021_ThreadWaitTime(int msec){
+	running_thread->state = kThreadWaiting;
+	running_thread->thread_time.sleep_time = msec;
+	swapcontext(&running_thread->thread_context, &timer_context);
+}
+
+void TimerCalc()
