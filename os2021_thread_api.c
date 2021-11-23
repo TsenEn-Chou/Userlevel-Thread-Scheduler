@@ -74,8 +74,8 @@ int CheckQueueHaveNode(list_t *queue, int priority){
 	return 0;
 }
 
-int AssignTQ(TCB *node){
-	switch (node->current_priority){
+int AssignTQ(TCB **node){
+	switch ((*node)->current_priority){
 	case 0:
 		return 80;
 		break;
@@ -88,12 +88,11 @@ int AssignTQ(TCB *node){
 	default:
 		break;
 	}
+	return -1;
 }
 
 void RunTask()
 {
-	int i = CheckBitMap(ready_queue);
-	(*running_thread) = ready_queue[i].head->next_tcb;
 	(*running_thread)->state = kThreadRunning;
 	(*running_thread)->p_function();
 	register TCB *tmp = CutNode(&terminate_queue, running_thread);

@@ -10,7 +10,7 @@ void CreateContext(ucontext_t *, ucontext_t *, void *);
 void InitAllQueues();
 int CheckBitMap(list_t *queue);
 int CheckQueueHaveNode(list_t *queue, int priority);
-int AssignTQ(TCB *node);
+int AssignTQ(TCB **node);
 void RunTask();
 
 int OS2021_ThreadCreate(char *job_name, char *p_function, int priority, int cancel_mode);
