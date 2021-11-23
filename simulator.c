@@ -12,9 +12,8 @@ int main(int argc ,char** argv){
 	char *functions2 = "function5";
 	OS2021_ThreadCreate(name2, functions2, 0, 0);
 	char *name3 = "idle task";
-	char *functions3 = "function2";
+	char *functions3 = "function6";
 	OS2021_ThreadCreate(name3, functions3, 2, 0);
 	StartSchedulingSimulation();
-	Dispatcher();
 	return 0;
 }
