@@ -57,6 +57,12 @@ void InitAllQueues(){
 	InitQueue(ready_queue);
 	InitQueue(waiting_queue);
 	InitQueue(event_queue);
+
+	TCB *head = (TCB*)calloc(1,sizeof(TCB));
+	head->state = kFake;
+	head->next_tcb = NULL;
+	terminate_queue.head = head;
+	terminate_queue.have_node = false;
 }
 
 int CheckBitMap(list_t *queue){
