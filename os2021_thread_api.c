@@ -247,18 +247,19 @@ void TimerCalc()
 				}
 			}
 		}
-
-	if ((*running_thread)->state == kThreadRunning) {
-		(*running_thread)->thread_time.runable_time -= 10;
-		if ((*running_thread)->thread_time.runable_time <= 0) {
-			(*running_thread)->state = kThreadReady;
-			if((*running_thread)->current_priority < 2){
-				(*running_thread)->current_priority += 1; // Time quantum is used up, increase priority
-				fprintf(stdout,"%s change priority to %d",(*running_thread)->job_name, (*running_thread)->current_priority);
-				fflush(stdout);
-			}
-			running = CutNode(ready_queue, running_thread);
-			InsertTailNode(ready_queue, running);
+	}
+	if (((*running_thread) != NULL) && 
+		(*running_thread)->state == kThreadRunning) {
+			(*running_thread)->thread_time.runable_time -= 10;
+			if ((*running_thread)->thread_time.runable_time <= 0) {
+				(*running_thread)->state = kThreadReady;
+				if((*running_thread)->current_priority < 2){
+					(*running_thread)->current_priority += 1; // Time quantum is used up, increase priority
+					fprintf(stdout,"%s change priority to %d",(*running_thread)->job_name, (*running_thread)->current_priority);
+					fflush(stdout);
+				}
+				running = CutNode(ready_queue, running_thread);
+				InsertTailNode(ready_queue, running);
 		}
 	}
 
