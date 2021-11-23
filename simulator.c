@@ -4,15 +4,17 @@ int main(int argc ,char** argv){
 	InitAllQueues();
 	char *name="task3";
 	char *functions = "function3";
-	int p  = 0;
-	int cancel = 0;
-	OS2021_ThreadCreate(name, functions, p, cancel);
+	OS2021_ThreadCreate(name, functions, 0, 0);
 	char *name1="task4";
 	char *functions1 = "function4";
-	OS2021_ThreadCreate(name1, functions1, p, cancel);
+	OS2021_ThreadCreate(name1, functions1, 0, 0);
 	char *name2="task5";
 	char *functions2 = "function5";
-	OS2021_ThreadCreate(name2, functions2, p, cancel);
+	OS2021_ThreadCreate(name2, functions2, 0, 0);
+	char *name3 = "idle task";
+	char *functions3 = "function2";
+	OS2021_ThreadCreate(name3, functions3, 2, 0);
 	StartSchedulingSimulation();
+	Dispatcher();
 	return 0;
 }
