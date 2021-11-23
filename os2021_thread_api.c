@@ -4,7 +4,7 @@
 list_t ready_queue[3] = {0};
 list_t waiting_queue[3] = {0};
 list_t event_queue[3] = {0};
-list_t terminate_queue = {0};
+list_t terminate_queue[3] = {0};
 
 TCB **running_thread = {0};
 
@@ -57,12 +57,7 @@ void InitAllQueues(){
 	InitQueue(ready_queue);
 	InitQueue(waiting_queue);
 	InitQueue(event_queue);
-
-	TCB *head = (TCB*)calloc(1,sizeof(TCB));
-	head->state = kFake;
-	head->next_tcb = NULL;
-	terminate_queue.head = head;
-	terminate_queue.have_node = false;
+	InitQueue(terminate_queue);
 }
 
 int CheckBitMap(list_t *queue){
@@ -101,9 +96,9 @@ void RunTask()
 {
 	(*running_thread)->state = kThreadRunning;
 	(*running_thread)->p_function();
-	register TCB *tmp = CutNode(&terminate_queue, running_thread);
+	register TCB *tmp = CutNode(ready_queue, running_thread);
 	tmp->state = kThreadTerminated;
-	InsertTailNode(&terminate_queue, tmp);
+	InsertTailNode(terminate_queue, tmp);
 	setcontext(&timer_context);
 }
 
