@@ -75,6 +75,24 @@ int CheckQueueHaveNode(list_t *queue, int priority){
 	return 0;
 }
 
+void CheckTerminateQueue(){
+	int i = 0;
+	TCB **temp = NULL;
+	TCB *delete  = NULL;
+	for(i = 0 ; i < 3 ; i++){
+		if(CheckQueueHaveNode(terminate_queue,i)){
+			temp = &terminate_queue[i].head->next_tcb;
+			while(*temp){
+				delete = CutNode(terminate_queue,temp);
+				fprintf(stdout," The memeory space by %s has been related.\n",delete->job_name);
+				fflush(stdout);
+				free(delete);
+			}		
+		}
+
+	}
+}
+
 int AssignTQ(TCB **node){
 	switch ((*node)->current_priority){
 	case 0:
