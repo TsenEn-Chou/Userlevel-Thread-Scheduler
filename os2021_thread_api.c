@@ -239,13 +239,14 @@ void TimerCalc()
 			while(*p_ptr){
 				if((*p_ptr)->thread_time.sleep_time <=0){
 					(*p_ptr)->state = kThreadReady;
-					ptr = CutNode(ready_queue, p_ptr);
+					ptr = CutNode(waiting_queue, p_ptr);
 					InsertTailNode(ready_queue, ptr);	
 				}
-				p_ptr = &(*p_ptr)->next_tcb;
+				if((*p_ptr) != NULL){
+					p_ptr = &(*p_ptr)->next_tcb;
+				}
 			}
 		}
-	}
 
 	if ((*running_thread)->state == kThreadRunning) {
 		(*running_thread)->thread_time.runable_time -= 10;
