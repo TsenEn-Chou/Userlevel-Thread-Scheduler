@@ -270,7 +270,7 @@ void TimerCalc()
 	// 	raise(SIGTSTP);
 
 	//SET To Running or Dispatcher
-	if ((*running_thread)->state == kThreadRunning)
+	if ( (*running_thread != NULL) &&(*running_thread)->state == kThreadRunning)
 		setcontext(&(*running_thread)->thread_context);
 	else
 		setcontext(&dispatch_context);
