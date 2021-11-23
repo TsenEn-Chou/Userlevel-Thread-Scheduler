@@ -25,9 +25,9 @@ void InsertTailNode(list_t *queue, TCB *node) {
 TCB *CutNode(list_t *queue, TCB **node) {
 	register TCB *cut = (*node);
 
-	if (queue[cut->current_priority].tail == cut) {
-		(*node) = NULL;
+	if (queue[cut->current_priority].tail == cut) {	
 		queue[(*node)->current_priority].have_node = false;
+		(*node) = NULL;
 		GetTailNode(queue, cut->current_priority);
 		return cut;
 	} else {
