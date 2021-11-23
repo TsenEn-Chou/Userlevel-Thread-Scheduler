@@ -96,13 +96,13 @@ void CheckTerminateQueue(){
 int AssignTQ(TCB **node){
 	switch ((*node)->current_priority){
 	case 0:
-		return 80;
+		return 10;
 		break;
 	case 1:
-		return 160;
+		return 10;
 		break;
 	case 2:
-		return 240;
+		return 10;
 		break;	
 	default:
 		break;
@@ -185,10 +185,10 @@ void OS2021_ThreadSetEvent(int event_id){
 void OS2021_ThreadWaitTime(int msec){
 	register TCB *ptr;
 	(*running_thread)->state = kThreadWaiting;
-	(*running_thread)->thread_time.sleep_time = msec * 10;
+	(*running_thread)->thread_time.sleep_time = msec;
 	ptr = CutNode(ready_queue, running_thread);
 	InsertTailNode(waiting_queue, ptr);
-	swapcontext(&(*running_thread)->thread_context, &timer_context);
+	swapcontext(&ptr->thread_context, &timer_context);
 }
 
 void TimerCalc()
@@ -210,8 +210,8 @@ void TimerCalc()
 			while(ptr){
 				if(ptr->state == kThreadReady) {
 					ptr->thread_time.ready_q_time += 10;
-					ptr = ptr->next_tcb;
 				}
+				ptr = ptr->next_tcb;
 			}
 		}
 
@@ -294,8 +294,6 @@ void Dispatcher()
 		(*running_thread)->state = kThreadRunning;
 		(*running_thread)->thread_time.runable_time = AssignTQ(running_thread);
 		setcontext(&(*running_thread)->thread_context);	
-	setcontext(&(*running_thread)->thread_context);	
-		setcontext(&(*running_thread)->thread_context);	
 	}
 
 }
@@ -303,7 +301,7 @@ void Dispatcher()
 void ResetTimer(int a)
 {
 	Signaltimer.it_value.tv_sec = 0;
-	Signaltimer.it_value.tv_usec = 10000;
+	Signaltimer.it_value.tv_usec = 50000;
 	if (setitimer(ITIMER_REAL, &Signaltimer, NULL) < 0) {
 		printf("ERROR SETTING TIME SIGALRM!\n");
 	}
@@ -318,10 +316,13 @@ void ALARM_Handler(int a)
 		exit(0);	
 	}
 
-	if ((*running_thread)->state == kThreadRunning)
-		swapcontext(&(*running_thread)->thread_context, &timer_context);
-	else
+	if((running_thread) != NULL){
+		if ((*running_thread)->state == kThreadRunning)
+			swapcontext(&(*running_thread)->thread_context, &timer_context);
+		else
 		setcontext(&timer_context);
+	}
+
 }
 
 void StartSchedulingSimulation(){
