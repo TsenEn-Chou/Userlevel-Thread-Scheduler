@@ -289,10 +289,15 @@ void Dispatcher()
 
 	
 	j = CheckBitMap(ready_queue);
-	running_thread = &(ready_queue[j].head->next_tcb);
-	(*running_thread)->state = kThreadRunning;
-	(*running_thread)->thread_time.runable_time = AssignTQ(running_thread);
+	if(j>-1){
+		running_thread = &(ready_queue[j].head->next_tcb);
+		(*running_thread)->state = kThreadRunning;
+		(*running_thread)->thread_time.runable_time = AssignTQ(running_thread);
+		setcontext(&(*running_thread)->thread_context);	
 	setcontext(&(*running_thread)->thread_context);	
+		setcontext(&(*running_thread)->thread_context);	
+	}
+
 }
 
 void ResetTimer(int a)
