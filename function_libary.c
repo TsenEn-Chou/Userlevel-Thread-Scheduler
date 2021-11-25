@@ -1,60 +1,70 @@
 #include "function_libary.h"
+int i = 0;
 
 void function1(void) 
 {
-	// may terminated
-	unsigned int a = ~0;
-
-	while (a != 0) 
+	while (1) 
 	{
-		a -= 1;
+		OS2021_ThreadCreate("random69_1","function2",1,0);
+		OS2021_ThreadCreate("random69_2","function2",1,0);
+		OS2021_ThreadWaitTime(100);
+		//OS2021_ThreadCancel("random69_1");
+		OS2021_ThreadCancel("random69_2");
+		//OS2021_ThreadWaitTime(10000);
+		while(1);
 	}
 }
 
 void function2(void) 
 {
-	// run infinite
-	unsigned int a = 0;
+	int the_num;
+
+	int min = 68;
+	int max = 70;
+	
 	while (1) {
-		a++;
+		srand(time(NULL));
+		the_num = rand() %(max - min + 1) + min;
+		if(the_num == 69){
+			OS2021_ThreadSetEvent(2);
+			OS2021_ThreadSetEvent(8);
+			//OS2021_ThreadWaitTime(10000);
+			while(1);
+		}
 	}
 }
 
 void function3(void)
 {
-	
-	fprintf(stdout, "task3: good morning~\n");
-	fflush(stdout);
-	OS2021_ThreadWaitTime(1000);
-	fprintf(stdout, "task3: good morning again~\n");
-	fflush(stdout);
+	while(1){
+		OS2021_ThreadWaitEvent(2);
+		fprintf(stdout,"I'm tired and want to sleep for 1000ms\n");
+		fflush(stdout);
+		OS2021_ThreadWaitTime(1000);
+		i++;
+		fprintf(stdout,"I come back, the i is %d\n",i);
+		fflush(stdout);
+		//OS2021_TsetCanCel();
+	}
 }
 
 void function4(void)
 {
-	// sleep 5s
-	fprintf(stdout, "task4: good morning~\n");
-	fflush(stdout);
-	//OS2021_ThreadWaitEvent(1);
-	fprintf(stdout, "task4: wake up by task5~\n");
-	fflush(stdout);
+	while(1){
+		OS2021_ThreadWaitEvent(3);
+	}
 }
 
 void function5(void)
 {
-
-	fprintf(stdout, "task5: good morning~\n");
-	fflush(stdout);
-	//OS2021_ThreadSetEvent(1);
-	fprintf(stdout, "task5: wake up task4~\n");
-	fflush(stdout);
-
+	while(1){
+		OS2021_ThreadSetEvent(2);
+	}
 }
 
 void function6(void)
 {
-	// run infinite
 	while (1) {
-		CheckTerminateQueue();
+		OS2021_DeallocateThreadResource();
 	}
 }
