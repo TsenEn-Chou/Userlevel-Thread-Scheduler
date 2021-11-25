@@ -18,12 +18,18 @@ const static entry_function_t funct_adr[7] = {
 	function6
 };
 
-// const static char *state_str[4] = {
-// 	"THREAD_RUNNING",
-// 	"THREAD_READY",
-// 	"THREAD_WAITING",
-// 	"THREAD_TERMINATED"
-// };
+const static char *state_str[4] = {
+	"RUNNING",
+	"READY",
+	"WAITING",
+	"TERMINATED"
+};
+
+const static char *priority_str[3] = {
+	"H",
+	"M",
+	"L"
+};
 
 int tidMax = 0;
 
@@ -75,34 +81,16 @@ int CheckQueueHaveNode(list_t *queue, int priority){
 	return 0;
 }
 
-void CheckTerminateQueue(){
-	int i = 0;
-	TCB **temp = NULL;
-	TCB *delete  = NULL;
-	for(i = 0 ; i < 3 ; i++){
-		if(CheckQueueHaveNode(terminate_queue,i)){
-			temp = &terminate_queue[i].head->next_tcb;
-			while(*temp){
-				delete = CutNode(terminate_queue,temp);
-				fprintf(stdout," The memeory space by %s has been related.\n",delete->job_name);
-				fflush(stdout);
-				free(delete);
-			}		
-		}
-
-	}
-}
-
 int AssignTQ(TCB **node){
 	switch ((*node)->current_priority){
 	case 0:
-		return 10;
+		return 100;
 		break;
 	case 1:
-		return 10;
+		return 200;
 		break;
 	case 2:
-		return 10;
+		return 300;
 		break;	
 	default:
 		break;
@@ -120,6 +108,34 @@ void RunTask()
 	setcontext(&timer_context);
 }
 
+void ListAllNode(list_t *queue){
+	int i,j;
+	TCB *ptr;
+	char name[16] = {0};
+
+	for( i = 0 ; i < 3 ; i ++){
+		if(CheckQueueHaveNode(queue,i)) {
+			ptr = queue[i].head->next_tcb;
+			while(ptr){
+				strncpy(name,ptr->job_name,16);
+				for(j=0;j<15;j++){
+					if(!name[j]){
+						name[j] = 32;
+					}
+				}
+				printf("*\t%d\t%s\t%s\t%s\t\t%s\t\t%d\t%d\t*\n", ptr->tid, name, 
+				state_str[ptr->state],
+				priority_str[ptr->base_priority],
+				priority_str[ptr->current_priority],
+				ptr->thread_time.ready_q_time,
+				ptr->thread_time.waiting_q_time);
+
+				ptr = ptr->next_tcb;
+			}
+		}
+	}
+}
+
 int OS2021_ThreadCreate(char *job_name, char *p_function, int priority, int cancel_mode){
 	if (p_function[8] < '1' || p_function[8] > '6')
 		return -1;
@@ -129,6 +145,7 @@ int OS2021_ThreadCreate(char *job_name, char *p_function, int priority, int canc
 	data->tid = ++tidMax;
 	data->state = kThreadReady;
 	data->cancel_mode = cancel_mode;
+	data->kill = 0;
 	data->job_name = malloc(strlen(job_name) + 1);// +1 mean append '\0' to job_name
 	strncpy(data->job_name, job_name, strlen(job_name) + 1);
 	data->base_priority = priority;
@@ -140,12 +157,39 @@ int OS2021_ThreadCreate(char *job_name, char *p_function, int priority, int canc
 }
 
 void OS2021_ThreadCancel(char *job_name){
-	TCB **cancel_node = FindNode(ready_queue, job_name);
+	register TCB **cancel_node = FindNode(ready_queue, job_name);
+	register TCB *ptr;
 	if(cancel_node){
-		CutNode(ready_queue, cancel_node);
+		ptr = (*cancel_node);
+		if(ptr->cancel_mode == 1){
+			ptr->kill = 1;
+		}else{
+			ptr = CutNode(ready_queue, cancel_node);
+			ptr->state = kThreadTerminated;
+			InsertTailNode(terminate_queue, ptr);
+		}
 	}else{
 		cancel_node	= FindNode(waiting_queue, job_name);
-		CutNode(ready_queue, cancel_node);
+		if(cancel_node){
+			ptr = (*cancel_node);
+			if(ptr->cancel_mode == 1){
+				ptr->kill = 1;
+			}else{
+				ptr = CutNode(waiting_queue, cancel_node);
+				ptr->state = kThreadTerminated;
+				InsertTailNode(terminate_queue, ptr);
+			}
+		}else{
+			cancel_node	= FindNode(event_queue, job_name);
+			ptr = (*cancel_node);
+			if(ptr->cancel_mode == 1){
+				ptr->kill = 1;
+			}else{
+				ptr = CutNode(event_queue, cancel_node);
+				ptr->state = kThreadTerminated;
+				InsertTailNode(terminate_queue, ptr);
+			}
+		}
 	}
 	
 }
@@ -155,13 +199,17 @@ void OS2021_ThreadWaitEvent(int event_id){
 	register TCB *running;
 	(*running_thread)->state = kThreadWaiting;
 	(*running_thread)->wait_evnt = event_id;
+	fprintf(stdout,"%s want wait event%d\n", (*running_thread)->job_name,(*running_thread)->wait_evnt);
+	fflush(stdout);
 	running = CutNode(ready_queue, running_thread);
+	//reduce priority
 	InsertTailNode(event_queue,running);
-
+	swapcontext(&running->thread_context, &timer_context);
 }
 
 void OS2021_ThreadSetEvent(int event_id){
 	int i;
+	bool have;
 	register TCB **ptr;
 	register TCB *tmp;
 	for(i = 0;i < 3; i++){
@@ -169,17 +217,23 @@ void OS2021_ThreadSetEvent(int event_id){
 			ptr = &(event_queue[i].head->next_tcb);
 			while(*ptr){
 				if((*ptr)->wait_evnt == event_id){
+					have = 1;
 					(*ptr)->state = kThreadReady;
+					fprintf(stdout,"%s wake up %s \n", (*running_thread)->job_name,(*ptr)->job_name);
+					fflush(stdout);
 					(*ptr)->wait_evnt = -1;
-					tmp = CutNode(ready_queue, ptr);
-					InsertTailNode(event_queue,tmp);
+					tmp = CutNode(event_queue, ptr);
+					InsertTailNode(ready_queue,tmp);
 					break;
 				}
 				ptr = &(*ptr)->next_tcb;
 			}	
-		}	
+		}
 	}
-		
+	if(!have){
+		fprintf(stdout,"%s: No threads are waiting evnet%d\n",(*running_thread)->job_name ,event_id);
+		fflush(stdout);
+	}
 }
 
 void OS2021_ThreadWaitTime(int msec){
@@ -189,6 +243,24 @@ void OS2021_ThreadWaitTime(int msec){
 	ptr = CutNode(ready_queue, running_thread);
 	InsertTailNode(waiting_queue, ptr);
 	swapcontext(&ptr->thread_context, &timer_context);
+}
+
+void OS2021_DeallocateThreadResource(){
+	int i = 0;
+	TCB **temp = NULL;
+	TCB *delete  = NULL;
+	for(i = 0 ; i < 3 ; i++){
+		if(CheckQueueHaveNode(terminate_queue,i)){
+			temp = &terminate_queue[i].head->next_tcb;
+			while(*temp){
+				delete = CutNode(terminate_queue,temp);
+				fprintf(stdout,"The memeory space by %s has been related.\n",delete->job_name);
+				fflush(stdout);
+				free(delete);
+			}		
+		}
+
+	}
 }
 
 void TimerCalc()
@@ -209,7 +281,7 @@ void TimerCalc()
 			ptr = ready_queue[i].head->next_tcb;
 			while(ptr){
 				if(ptr->state == kThreadReady) {
-					ptr->thread_time.ready_q_time += 10;
+					ptr->thread_time.ready_q_time += 5;
 				}
 				ptr = ptr->next_tcb;
 			}
@@ -218,8 +290,8 @@ void TimerCalc()
 		if(CheckQueueHaveNode(waiting_queue,i)) {
 			ptr = waiting_queue[i].head->next_tcb;
 			while(ptr){
-				ptr->thread_time.waiting_q_time += 10;
-				ptr->thread_time.sleep_time -= 10;
+				ptr->thread_time.waiting_q_time += 5;
+				ptr->thread_time.sleep_time -= 5;
 				ptr = ptr->next_tcb;
 			}
 		}
@@ -227,7 +299,7 @@ void TimerCalc()
 		if(CheckQueueHaveNode(event_queue,i)) {
 			ptr = event_queue[i].head->next_tcb;
 			while(ptr){
-				ptr->thread_time.waiting_q_time += 10;
+				ptr->thread_time.waiting_q_time += 5;
 				ptr = ptr->next_tcb;
 			}
 		}
@@ -250,25 +322,18 @@ void TimerCalc()
 	}
 	if (((*running_thread) != NULL) && 
 		(*running_thread)->state == kThreadRunning) {
-			(*running_thread)->thread_time.runable_time -= 10;
+			(*running_thread)->thread_time.runable_time -= 5;
 			if ((*running_thread)->thread_time.runable_time <= 0) {
 				(*running_thread)->state = kThreadReady;
-				if((*running_thread)->current_priority < 2){
-					(*running_thread)->current_priority += 1; // Time quantum is used up, increase priority
-					fprintf(stdout,"%s change priority to %d",(*running_thread)->job_name, (*running_thread)->current_priority);
+				running = CutNode(ready_queue, running_thread);
+				if(running->current_priority < 2){
+					running->current_priority += 1; // Time quantum is used up, increase priority
+					fprintf(stdout,"%s change priority to %s\n",running->job_name, priority_str[running->current_priority]);
 					fflush(stdout);
 				}
-				running = CutNode(ready_queue, running_thread);
 				InsertTailNode(ready_queue, running);
-		}
+			}
 	}
-
-	// Alarming = false;
-
-	// //if simulate start raise(SIGTSTP);
-	// if (Simulating)
-	// 	raise(SIGTSTP);
-
 	//SET To Running or Dispatcher
 	if ( (*running_thread != NULL) &&(*running_thread)->state == kThreadRunning)
 		setcontext(&(*running_thread)->thread_context);
@@ -284,9 +349,6 @@ void Dispatcher()
 	if ( i == -1 && j == -1 && k == -1) {
 		exit(0);	
 	} 
-
-	//register TCB **ptr = &running_thread;
-
 	
 	j = CheckBitMap(ready_queue);
 	if(j>-1){
@@ -301,7 +363,7 @@ void Dispatcher()
 void ResetTimer(int a)
 {
 	Signaltimer.it_value.tv_sec = 0;
-	Signaltimer.it_value.tv_usec = 50000;
+	Signaltimer.it_value.tv_usec = 5000;
 	if (setitimer(ITIMER_REAL, &Signaltimer, NULL) < 0) {
 		printf("ERROR SETTING TIME SIGALRM!\n");
 	}
@@ -325,8 +387,21 @@ void ALARM_Handler(int a)
 
 }
 
+void SigtStpHandler(){
+	signal(SIGALRM, ResetTimer);
+	printf("\n****************************************************************************************\n");
+	printf("*\tTID\tName\t\tState\tB_Priority\tC_Priority\tQ_Time\tW_Time\t*\t\n");
+	ListAllNode(ready_queue);
+	ListAllNode(waiting_queue);
+	ListAllNode(event_queue);
+	printf("****************************************************************************************\n");
+	ResetTimer(0);
+	signal(SIGALRM,ALARM_Handler);
+}
+
 void StartSchedulingSimulation(){
-	/*Set Timer*/
+	signal(SIGTSTP,SigtStpHandler);
+	// /*Set Timer*/
 	Signaltimer.it_interval.tv_usec = 0;
 	Signaltimer.it_interval.tv_sec = 0;
 	ResetTimer(0);

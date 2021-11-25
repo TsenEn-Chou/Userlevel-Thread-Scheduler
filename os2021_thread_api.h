@@ -12,20 +12,22 @@ int CheckBitMap(list_t *queue);
 int CheckQueueHaveNode(list_t *queue, int priority);
 int AssignTQ(TCB **node);
 void RunTask();
-void CheckTerminateQueue();
+void ListAllNode(list_t *queue);
 
 int OS2021_ThreadCreate(char *job_name, char *p_function, int priority, int cancel_mode);
 void OS2021_ThreadCancel(char *job_name);
 void OS2021_ThreadWaitEvent(int event_id);
 void OS2021_ThreadSetEvent(int event_id);
 void OS2021_ThreadWaitTime(int msec);
+void OS2021_DeallocateThreadResource();
+void OS2021_TsetCanCel();
 
 void TimerCalc();
 void Dispatcher();
 
 void ResetTimer(int a);
 void AlarmHandler(int a);
-void SigtstpHandler(int recv);
+void SigtStpHandler();
 
 void StartSchedulingSimulation();
 
