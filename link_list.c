@@ -26,7 +26,7 @@ TCB *CutNode(list_t *queue, TCB **node) {
 	register TCB *cut = (*node);
 
 	if (queue[cut->current_priority].tail == cut) {	
-		queue[(*node)->current_priority].have_node = false;
+		queue[cut->current_priority].have_node = false;
 		(*node) = NULL;
 		GetTailNode(queue, cut->current_priority);
 		return cut;
@@ -54,7 +54,6 @@ TCB **FindNode(list_t *queue, char *job_name) {
 	register TCB **ptr;
 	for (i = 0; i < 3; i++) {
 		ptr = &(queue[i].head->next_tcb);
-		printf("%d\n",i);
 		while (*ptr) {
 			if (strcmp((*ptr)->job_name,job_name) == 0)
 				return ptr;
