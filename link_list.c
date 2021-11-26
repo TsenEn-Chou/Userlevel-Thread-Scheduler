@@ -13,27 +13,28 @@ void InitQueue(list_t *queue) {
 
 void InsertTailNode(list_t *queue, TCB *node) {
 
-	if (queue[node->current_priority].tail == NULL) {
+	if (!queue[node->current_priority].have_node) {
 		queue[node->current_priority].head->next_tcb = node;
 		queue[node->current_priority].have_node = true;
-	} else
+	} else{
 		queue[node->current_priority].tail->next_tcb = node;
+	}
 	queue[node->current_priority].tail = node;
-	node->next_tcb = NULL;
+	queue[node->current_priority].tail->next_tcb = NULL;
 }
 
 TCB *CutNode(list_t *queue, TCB **node) {
 	register TCB *cut = (*node);
+	(*node) = (cut->next_tcb);
 
-	if (queue[cut->current_priority].tail == cut) {	
+	if(!(queue[cut->current_priority].head->next_tcb)){
 		queue[cut->current_priority].have_node = false;
-		(*node) = NULL;
-		GetTailNode(queue, cut->current_priority);
-		return cut;
-	} else {
-		(*node) = (cut->next_tcb);
-		return cut;
-	}	
+		queue[cut->current_priority].head->next_tcb = NULL;
+		queue[cut->current_priority].tail = NULL;	
+	}
+	GetTailNode(queue, cut->current_priority);
+	cut->next_tcb = NULL;
+	return cut;	
 }
 
 void GetTailNode(list_t *queue, int priority) {
@@ -57,7 +58,7 @@ TCB **FindNode(list_t *queue, char *job_name) {
 		while (*ptr) {
 			if (strcmp((*ptr)->job_name,job_name) == 0)
 				return ptr;
-			ptr = &(*ptr)->next_tcb;
+			ptr = &((*ptr)->next_tcb);
 		}
 	}
 	return NULL;
