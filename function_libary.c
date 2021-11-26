@@ -7,10 +7,11 @@ void function1(void)
 	{
 		OS2021_ThreadCreate("random69_1","function2",1,0);
 		OS2021_ThreadCreate("random69_2","function2",1,0);
-		OS2021_ThreadWaitTime(100);
-		//OS2021_ThreadCancel("random69_1");
+		OS2021_ThreadWaitEvent(2);
+		
+		OS2021_ThreadCancel("random69_1");
 		OS2021_ThreadCancel("random69_2");
-		//OS2021_ThreadWaitTime(10000);
+		OS2021_ThreadCancel("random69_2");
 		while(1);
 	}
 }
@@ -27,7 +28,7 @@ void function2(void)
 		the_num = rand() %(max - min + 1) + min;
 		if(the_num == 69){
 			OS2021_ThreadSetEvent(2);
-			OS2021_ThreadSetEvent(8);
+			//OS2021_ThreadSetEvent(7);
 			//OS2021_ThreadWaitTime(10000);
 			while(1);
 		}
