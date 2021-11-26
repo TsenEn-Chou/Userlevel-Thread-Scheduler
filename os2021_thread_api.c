@@ -181,14 +181,17 @@ void OS2021_ThreadCancel(char *job_name){
 			}
 		}else{
 			cancel_node	= FindNode(event_queue, job_name);
-			ptr = (*cancel_node);
-			if(ptr->cancel_mode == 1){
-				ptr->kill = 1;
-			}else{
-				ptr = CutNode(event_queue, cancel_node);
-				ptr->state = kThreadTerminated;
-				InsertTailNode(terminate_queue, ptr);
+			if(cancel_node){
+				ptr = (*cancel_node);
+				if(ptr->cancel_mode == 1){
+					ptr->kill = 1;
+				}else{
+					ptr = CutNode(event_queue, cancel_node);
+					ptr->state = kThreadTerminated;
+					InsertTailNode(terminate_queue, ptr);
+				}
 			}
+
 		}
 	}
 	
@@ -197,9 +200,10 @@ void OS2021_ThreadCancel(char *job_name){
 
 void OS2021_ThreadWaitEvent(int event_id){
 	register TCB *running;
-	(*running_thread)->state = kThreadWaiting;
-	(*running_thread)->wait_evnt = event_id;
-	fprintf(stdout,"%s want wait event%d\n", (*running_thread)->job_name,(*running_thread)->wait_evnt);
+	running = (*running_thread);
+	running->state = kThreadWaiting;
+	running->wait_evnt = event_id;
+	fprintf(stdout,"%s want wait event%d\n", running->job_name,(*running_thread)->wait_evnt);
 	fflush(stdout);
 	running = CutNode(ready_queue, running_thread);
 	//reduce priority
@@ -211,7 +215,7 @@ void OS2021_ThreadSetEvent(int event_id){
 	int i;
 	bool have;
 	register TCB **ptr;
-	register TCB *tmp;
+	register TCB *tmp = (*running_thread) ;
 	for(i = 0;i < 3; i++){
 		if(CheckQueueHaveNode(event_queue,i)){
 			ptr = &(event_queue[i].head->next_tcb);
@@ -219,7 +223,7 @@ void OS2021_ThreadSetEvent(int event_id){
 				if((*ptr)->wait_evnt == event_id){
 					have = 1;
 					(*ptr)->state = kThreadReady;
-					fprintf(stdout,"%s wake up %s \n", (*running_thread)->job_name,(*ptr)->job_name);
+					fprintf(stdout,"%s wake up %s \n", tmp->job_name,(*ptr)->job_name);
 					fflush(stdout);
 					(*ptr)->wait_evnt = -1;
 					tmp = CutNode(event_queue, ptr);
@@ -234,12 +238,13 @@ void OS2021_ThreadSetEvent(int event_id){
 		fprintf(stdout,"%s: No threads are waiting evnet%d\n",(*running_thread)->job_name ,event_id);
 		fflush(stdout);
 	}
+	have = 0;
 }
 
 void OS2021_ThreadWaitTime(int msec){
-	register TCB *ptr;
-	(*running_thread)->state = kThreadWaiting;
-	(*running_thread)->thread_time.sleep_time = msec;
+	register TCB *ptr = (*running_thread);
+	ptr->state = kThreadWaiting;
+	ptr->thread_time.sleep_time = msec;
 	ptr = CutNode(ready_queue, running_thread);
 	InsertTailNode(waiting_queue, ptr);
 	swapcontext(&ptr->thread_context, &timer_context);
@@ -261,6 +266,10 @@ void OS2021_DeallocateThreadResource(){
 		}
 
 	}
+}
+
+void OS2021_TsetCancel(){
+
 }
 
 void TimerCalc()
@@ -351,7 +360,7 @@ void Dispatcher()
 	} 
 	
 	j = CheckBitMap(ready_queue);
-	if(j>-1){
+	if(j> -1){
 		running_thread = &(ready_queue[j].head->next_tcb);
 		(*running_thread)->state = kThreadRunning;
 		(*running_thread)->thread_time.runable_time = AssignTQ(running_thread);
@@ -401,7 +410,7 @@ void SigtStpHandler(){
 
 void StartSchedulingSimulation(){
 	signal(SIGTSTP,SigtStpHandler);
-	// /*Set Timer*/
+	// // /*Set Timer*/
 	Signaltimer.it_interval.tv_usec = 0;
 	Signaltimer.it_interval.tv_sec = 0;
 	ResetTimer(0);
@@ -412,4 +421,3 @@ void StartSchedulingSimulation(){
 	signal(SIGALRM, ALARM_Handler);
 	setcontext(&dispatch_context);
 }
-
