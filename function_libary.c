@@ -1,71 +1,79 @@
 #include "function_libary.h"
-int i = 0;
 
-void function1(void) 
+void Function1(void) 
 {
 	while (1) 
 	{
-		OS2021_ThreadCreate("random69_1","function2",1,0);
-		OS2021_ThreadCreate("random69_2","function2",1,0);
-		OS2021_ThreadWaitEvent(2);
-		
-		OS2021_ThreadCancel("random69_1");
-		OS2021_ThreadCancel("random69_2");
-		OS2021_ThreadCancel("random69_2");
+		OS2021_ThreadCreate("random_1","Function2",2,1);
+		OS2021_ThreadCreate("random_2","Function2",2,1);
+		OS2021_ThreadWaitEvent(3);
+		OS2021_ThreadCancel("random_1");
+		OS2021_ThreadCancel("random_2");
 		while(1);
 	}
 }
 
-void function2(void) 
+void Function2(void) 
 {
 	int the_num;
 
-	int min = 68;
-	int max = 70;
+	int min = 65400;
+	int max = 65410;
 	
-	while (1) {
+	while (1) 
+	{
 		srand(time(NULL));
-		the_num = rand() %(max - min + 1) + min;
-		if(the_num == 69){
-			OS2021_ThreadSetEvent(2);
-			//OS2021_ThreadSetEvent(7);
-			//OS2021_ThreadWaitTime(10000);
-			while(1);
+		the_num = rand() % (max - min + 1) + min;
+		if(the_num == 65409)
+		{
+			fprintf(stdout,"I found 65409.\n");
+			fflush(stdout);
+			OS2021_ThreadSetEvent(3);
+			min = 0;
+			max = 0;
 		}
+		OS2021_TestCancel();
 	}
 }
 
-void function3(void)
+void Function3(void)
 {
-	while(1){
-		OS2021_ThreadWaitEvent(2);
-		fprintf(stdout,"I'm tired and want to sleep for 1000ms\n");
-		fflush(stdout);
-		OS2021_ThreadWaitTime(1000);
-		i++;
-		fprintf(stdout,"I come back, the i is %d\n",i);
-		fflush(stdout);
-		//OS2021_TsetCanCel();
-	}
-}
-
-void function4(void)
-{
-	while(1){
+	while(1)
+	{
 		OS2021_ThreadWaitEvent(3);
+		fprintf(stdout,"I fell in love with the operating system.\n");
+		fflush(stdout);
 	}
 }
 
-void function5(void)
+void Function4(void)
 {
-	while(1){
-		OS2021_ThreadSetEvent(2);
+
+	while(1)
+	{
+		OS2021_ThreadWaitTime(1234);
+		fprintf(stdout,"I found 65409.\n");
+		fflush(stdout);
+		OS2021_ThreadSetEvent(6);
+		while(1);
 	}
 }
 
-void function6(void)
+void Function5(void)
 {
-	while (1) {
+	while(1)
+	{
+		OS2021_ThreadWaitEvent(6);
+		fprintf(stdout,"I fell in love with the operating system.\n");
+		fflush(stdout);
+		OS2021_ThreadWaitTime(86400000);
+	}
+}
+
+void ResourceReclaim(void)
+{
+	while (1) 
+	{
 		OS2021_DeallocateThreadResource();
 	}
 }

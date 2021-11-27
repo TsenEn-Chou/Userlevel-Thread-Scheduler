@@ -20,7 +20,7 @@ void OS2021_ThreadWaitEvent(int event_id);
 void OS2021_ThreadSetEvent(int event_id);
 void OS2021_ThreadWaitTime(int msec);
 void OS2021_DeallocateThreadResource();
-void OS2021_TsetCanCel();
+void OS2021_TestCancel();
 
 void TimerCalc();
 void Dispatcher();

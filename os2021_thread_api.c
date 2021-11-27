@@ -10,12 +10,12 @@ TCB **running_thread = {0};
 
 const static entry_function_t funct_adr[7] = {
 	0,
-	function1,
-	function2,
-	function3,
-	function4,
-	function5,
-	function6
+	Function1,
+	Function2,
+	Function3,
+	Function4,
+	Function5,
+	ResourceReclaim
 };
 
 const static char *state_str[4] = {
@@ -137,11 +137,18 @@ void ListAllNode(list_t *queue){
 }
 
 int OS2021_ThreadCreate(char *job_name, char *p_function, int priority, int cancel_mode){
-	if (p_function[8] < '1' || p_function[8] > '6')
-		return -1;
+	int funct_id;
 	TCB *data = calloc(1, sizeof(TCB));
-	int funct_id = p_function[8] - '0';
-	data->p_function = funct_adr[funct_id];
+	if(strncmp(p_function,"ResourceReclaim",15) == 0){
+		data->p_function = funct_adr[6];
+	}else{
+		if(strncmp(p_function,"Function",8) == 0){
+			funct_id = p_function[8] - '0';
+			data->p_function = funct_adr[funct_id];
+		}else{
+			return -1;
+		}
+	}
 	data->tid = ++tidMax;
 	data->state = kThreadReady;
 	data->cancel_mode = cancel_mode;
@@ -203,10 +210,17 @@ void OS2021_ThreadWaitEvent(int event_id){
 	running = (*running_thread);
 	running->state = kThreadWaiting;
 	running->wait_evnt = event_id;
-	fprintf(stdout,"%s want wait event%d\n", running->job_name,(*running_thread)->wait_evnt);
+	fprintf(stdout,"%s wants to wait for event %d\n", running->job_name,(*running_thread)->wait_evnt);
 	fflush(stdout);
 	running = CutNode(ready_queue, running_thread);
-	//reduce priority
+	//Increase priority
+	if(running->thread_time.runable_time>0){
+		if(running->current_priority>0){
+			running->current_priority -=1;
+			fprintf(stdout,"The priority of %s is changed to %s\n",running->job_name, priority_str[running->current_priority]);
+			fflush(stdout);
+		}
+	}
 	InsertTailNode(event_queue,running);
 	swapcontext(&running->thread_context, &timer_context);
 }
@@ -223,7 +237,7 @@ void OS2021_ThreadSetEvent(int event_id){
 				if((*ptr)->wait_evnt == event_id){
 					have = 1;
 					(*ptr)->state = kThreadReady;
-					fprintf(stdout,"%s wake up %s \n", tmp->job_name,(*ptr)->job_name);
+					fprintf(stdout,"%s changes the status of %s to READY \n", tmp->job_name,(*ptr)->job_name);
 					fflush(stdout);
 					(*ptr)->wait_evnt = -1;
 					tmp = CutNode(event_queue, ptr);
@@ -246,6 +260,14 @@ void OS2021_ThreadWaitTime(int msec){
 	ptr->state = kThreadWaiting;
 	ptr->thread_time.sleep_time = msec;
 	ptr = CutNode(ready_queue, running_thread);
+	//Increase priority
+	if(ptr->thread_time.runable_time>0){
+		if(ptr->current_priority>0){
+			ptr->current_priority -=1;
+			fprintf(stdout,"The priority of %s is changed to %s\n",ptr->job_name, priority_str[ptr->current_priority]);
+			fflush(stdout);
+		}
+	}
 	InsertTailNode(waiting_queue, ptr);
 	swapcontext(&ptr->thread_context, &timer_context);
 }
@@ -268,8 +290,14 @@ void OS2021_DeallocateThreadResource(){
 	}
 }
 
-void OS2021_TsetCancel(){
-
+void OS2021_TestCancel(){
+	if((*running_thread)->kill){
+		register TCB *ptr = (*running_thread);
+		ptr = CutNode(ready_queue, running_thread);
+		ptr->state = kThreadTerminated;
+		InsertTailNode(terminate_queue, ptr);
+		swapcontext(&ptr->thread_context, &timer_context);
+	}
 }
 
 void TimerCalc()
@@ -290,7 +318,7 @@ void TimerCalc()
 			ptr = ready_queue[i].head->next_tcb;
 			while(ptr){
 				if(ptr->state == kThreadReady) {
-					ptr->thread_time.ready_q_time += 5;
+					ptr->thread_time.ready_q_time += 1;
 				}
 				ptr = ptr->next_tcb;
 			}
@@ -299,8 +327,8 @@ void TimerCalc()
 		if(CheckQueueHaveNode(waiting_queue,i)) {
 			ptr = waiting_queue[i].head->next_tcb;
 			while(ptr){
-				ptr->thread_time.waiting_q_time += 5;
-				ptr->thread_time.sleep_time -= 5;
+				ptr->thread_time.waiting_q_time += 1;
+				ptr->thread_time.sleep_time -= 1;
 				ptr = ptr->next_tcb;
 			}
 		}
@@ -308,7 +336,7 @@ void TimerCalc()
 		if(CheckQueueHaveNode(event_queue,i)) {
 			ptr = event_queue[i].head->next_tcb;
 			while(ptr){
-				ptr->thread_time.waiting_q_time += 5;
+				ptr->thread_time.waiting_q_time += 1;
 				ptr = ptr->next_tcb;
 			}
 		}
@@ -319,8 +347,8 @@ void TimerCalc()
 			p_ptr = &waiting_queue[i].head->next_tcb;
 			while(*p_ptr){
 				if((*p_ptr)->thread_time.sleep_time <=0){
-					(*p_ptr)->state = kThreadReady;
 					ptr = CutNode(waiting_queue, p_ptr);
+					ptr->state = kThreadReady;
 					InsertTailNode(ready_queue, ptr);	
 				}
 				if((*p_ptr) != NULL){
@@ -331,13 +359,13 @@ void TimerCalc()
 	}
 	if (((*running_thread) != NULL) && 
 		(*running_thread)->state == kThreadRunning) {
-			(*running_thread)->thread_time.runable_time -= 5;
+			(*running_thread)->thread_time.runable_time -= 1;
 			if ((*running_thread)->thread_time.runable_time <= 0) {
 				(*running_thread)->state = kThreadReady;
 				running = CutNode(ready_queue, running_thread);
 				if(running->current_priority < 2){
 					running->current_priority += 1; // Time quantum is used up, increase priority
-					fprintf(stdout,"%s change priority to %s\n",running->job_name, priority_str[running->current_priority]);
+					fprintf(stdout,"The priority of %s is changed to %s\n",running->job_name, priority_str[running->current_priority]);
 					fflush(stdout);
 				}
 				InsertTailNode(ready_queue, running);
@@ -372,7 +400,7 @@ void Dispatcher()
 void ResetTimer(int a)
 {
 	Signaltimer.it_value.tv_sec = 0;
-	Signaltimer.it_value.tv_usec = 5000;
+	Signaltimer.it_value.tv_usec = 1000;
 	if (setitimer(ITIMER_REAL, &Signaltimer, NULL) < 0) {
 		printf("ERROR SETTING TIME SIGALRM!\n");
 	}
@@ -410,7 +438,8 @@ void SigtStpHandler(){
 
 void StartSchedulingSimulation(){
 	signal(SIGTSTP,SigtStpHandler);
-	// // /*Set Timer*/
+	OS2021_ThreadCreate("reclaimer", "ResourceReclaim", 2, 1);
+	/*Set Timer*/
 	Signaltimer.it_interval.tv_usec = 0;
 	Signaltimer.it_interval.tv_sec = 0;
 	ResetTimer(0);

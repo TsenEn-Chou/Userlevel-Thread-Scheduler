@@ -1,22 +1,16 @@
 {
-	"Jobs":[
+	"Threads":[
 		{
-			"job name" : "P_Hello",
-			"entry function" : "function1",
-			"priority": "L",
-			"cancel mode": "D"
-		},
-		{
-			"job name" : "CalcAvg",
-			"entry function" : "function2",
-			"priority": "H",
-			"cancel mode": "A"
-		},
-		{
-			"job name" : "BFS",
-			"entry function" : "function3",
+			"name" : "f1",
+			"entry function" : "Function1",
 			"priority": "M",
-			"cancel mode":"A" 
+			"cancel mode": "1"
+		},
+		{
+			"name" : "f3",
+			"entry function" : "Function3",
+			"priority": "M",
+			"cancel mode": "0"
 		}
 	]
 }
