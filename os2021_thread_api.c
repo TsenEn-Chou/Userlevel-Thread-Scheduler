@@ -207,6 +207,7 @@ void OS2021_ThreadCancel(char *job_name){
 
 void OS2021_ThreadWaitEvent(int event_id){
 	register TCB *running;
+	int pr;
 	running = (*running_thread);
 	running->state = kThreadWaiting;
 	running->wait_evnt = event_id;
@@ -216,8 +217,9 @@ void OS2021_ThreadWaitEvent(int event_id){
 	//Increase priority
 	if(running->thread_time.runable_time>0){
 		if(running->current_priority>0){
+			pr = running->current_priority;
 			running->current_priority -=1;
-			fprintf(stdout,"The priority of %s is changed to %s\n",running->job_name, priority_str[running->current_priority]);
+			fprintf(stdout,"The priority of thread %s is changed from %s to %s\n",running->job_name, priority_str[pr] ,priority_str[running->current_priority]);
 			fflush(stdout);
 		}
 	}
@@ -257,14 +259,16 @@ void OS2021_ThreadSetEvent(int event_id){
 
 void OS2021_ThreadWaitTime(int msec){
 	register TCB *ptr = (*running_thread);
+	int pr;
 	ptr->state = kThreadWaiting;
-	ptr->thread_time.sleep_time = msec;
+	ptr->thread_time.sleep_time = msec * 10;
 	ptr = CutNode(ready_queue, running_thread);
 	//Increase priority
 	if(ptr->thread_time.runable_time>0){
 		if(ptr->current_priority>0){
+			pr = ptr->current_priority;
 			ptr->current_priority -=1;
-			fprintf(stdout,"The priority of %s is changed to %s\n",ptr->job_name, priority_str[ptr->current_priority]);
+			fprintf(stdout,"The priority of thread %s is changed from %s to %s\n",ptr->job_name, priority_str[pr] ,priority_str[ptr->current_priority]);
 			fflush(stdout);
 		}
 	}
@@ -281,7 +285,7 @@ void OS2021_DeallocateThreadResource(){
 			temp = &terminate_queue[i].head->next_tcb;
 			while(*temp){
 				delete = CutNode(terminate_queue,temp);
-				fprintf(stdout,"The memeory space by %s has been related.\n",delete->job_name);
+				fprintf(stdout,"The memeory space by %s has been released.\n",delete->job_name);
 				fflush(stdout);
 				free(delete);
 			}		
@@ -309,6 +313,7 @@ void TimerCalc()
 	int i = CheckBitMap(ready_queue);
 	int j = CheckBitMap(waiting_queue);
 	int k = CheckBitMap(event_queue);
+	int pr;
 	if ( i == -1 && j == -1 && k == -1) {
 		exit(0);	
 	} 
@@ -318,7 +323,7 @@ void TimerCalc()
 			ptr = ready_queue[i].head->next_tcb;
 			while(ptr){
 				if(ptr->state == kThreadReady) {
-					ptr->thread_time.ready_q_time += 1;
+					ptr->thread_time.ready_q_time += 10;
 				}
 				ptr = ptr->next_tcb;
 			}
@@ -327,8 +332,8 @@ void TimerCalc()
 		if(CheckQueueHaveNode(waiting_queue,i)) {
 			ptr = waiting_queue[i].head->next_tcb;
 			while(ptr){
-				ptr->thread_time.waiting_q_time += 1;
-				ptr->thread_time.sleep_time -= 1;
+				ptr->thread_time.waiting_q_time += 10;
+				ptr->thread_time.sleep_time -= 10;
 				ptr = ptr->next_tcb;
 			}
 		}
@@ -336,7 +341,7 @@ void TimerCalc()
 		if(CheckQueueHaveNode(event_queue,i)) {
 			ptr = event_queue[i].head->next_tcb;
 			while(ptr){
-				ptr->thread_time.waiting_q_time += 1;
+				ptr->thread_time.waiting_q_time += 10;
 				ptr = ptr->next_tcb;
 			}
 		}
@@ -364,8 +369,9 @@ void TimerCalc()
 				(*running_thread)->state = kThreadReady;
 				running = CutNode(ready_queue, running_thread);
 				if(running->current_priority < 2){
+					pr = running->current_priority;
 					running->current_priority += 1; // Time quantum is used up, increase priority
-					fprintf(stdout,"The priority of %s is changed to %s\n",running->job_name, priority_str[running->current_priority]);
+					fprintf(stdout,"The priority of thread %s is changed from %s to %s\n",running->job_name, priority_str[pr] ,priority_str[running->current_priority]);
 					fflush(stdout);
 				}
 				InsertTailNode(ready_queue, running);
@@ -400,7 +406,7 @@ void Dispatcher()
 void ResetTimer(int a)
 {
 	Signaltimer.it_value.tv_sec = 0;
-	Signaltimer.it_value.tv_usec = 1000;
+	Signaltimer.it_value.tv_usec = 10000;
 	if (setitimer(ITIMER_REAL, &Signaltimer, NULL) < 0) {
 		printf("ERROR SETTING TIME SIGALRM!\n");
 	}
