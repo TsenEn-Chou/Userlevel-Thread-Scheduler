@@ -15,7 +15,7 @@ $(GIT_HOOKS):
 # 	$(CC) $(CFLAGS) -o simulator $(OBJS)
 
 simulator:simulator.o os2021_thread_api.o link_list.o function_libary.o
-	$(CC) $(CFLAGS) -o simulator simulator.o os2021_thread_api.o link_list.o function_libary.o
+	$(CC) $(CFLAGS) -o simulator simulator.o os2021_thread_api.o link_list.o function_libary.o -ljson-c
 
 simulator.o:simulator.c os2021_thread_api.h
 	$(CC) $(CFLAGS) -c simulator.c
