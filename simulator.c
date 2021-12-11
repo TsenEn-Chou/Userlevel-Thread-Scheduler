@@ -13,7 +13,7 @@ int main(int argc ,char** argv){
 
 void JsonParse(char *file_name){
     FILE *fp;
-    int i,j;
+    int i;
     char buffer[1024];
     json_object *parsed_json;
     json_object *threads;
@@ -42,25 +42,9 @@ void JsonParse(char *file_name){
         json_object_object_get_ex(thread,"entry function", &entry_function);
         json_object_object_get_ex(thread,"priority", &priority);
         json_object_object_get_ex(thread,"cancel mode", &cancel_mode);
-
-        switch (*json_object_get_string(priority))
-        {
-            case 'H':
-                j = 0;
-                break;
-            case 'M':
-                j = 1;
-                break;
-            case 'L':
-                j = 2;
-                break;
-            default:
-                break;
-        }
-
         OS2021_ThreadCreate((char*)json_object_get_string(name), 
         (char*)json_object_get_string(entry_function), 
-        j, 
+        (char*)json_object_get_string(priority), 
         json_object_get_int(cancel_mode)); 
     }
 }
