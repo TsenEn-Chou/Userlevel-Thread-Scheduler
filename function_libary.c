@@ -2,13 +2,23 @@
 
 void Function1(void) 
 {
+    int i,j;
 	while (1) 
 	{
-		OS2021_ThreadCreate("random_1","Function2",2,1);
-		OS2021_ThreadCreate("random_2","Function2",2,1);
+		i = OS2021_ThreadCreate("random_1","Function2","L",1);
+        ((i>0) ? fprintf(stdout,"Created random_1 successfully\n"):
+        fprintf(stdout,"Failed to create random_1\n"));
+        fflush(stdout);
+
+		j = OS2021_ThreadCreate("random_2","Function2","L",1);
+        ((j>0) ? fprintf(stdout,"Created random_2 successfully\n"):
+        fprintf(stdout,"Failed to create random_2\n"));
+        fflush(stdout);
+        
 		OS2021_ThreadWaitEvent(3);
-		OS2021_ThreadCancel("random_1");
-		OS2021_ThreadCancel("random_2");
+
+		((i>0) ? OS2021_ThreadCancel("random_1"): "");
+		((j>0) ? OS2021_ThreadCancel("random_2"): "");
 		while(1);
 	}
 }
