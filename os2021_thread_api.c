@@ -136,8 +136,10 @@ void ListAllNode(list_t *queue){
 	}
 }
 
-int OS2021_ThreadCreate(char *job_name, char *p_function, int priority, int cancel_mode){
+int OS2021_ThreadCreate(char *job_name, char *p_function, char *priority, int cancel_mode){
 	int funct_id;
+    int j = 0;
+    char *p = priority; 
 	TCB *data = calloc(1, sizeof(TCB));
 	if(strncmp(p_function,"ResourceReclaim",15) == 0){
 		data->p_function = funct_adr[6];
@@ -149,14 +151,29 @@ int OS2021_ThreadCreate(char *job_name, char *p_function, int priority, int canc
 			return -1;
 		}
 	}
+
+    switch (p[0])
+    {
+        case 'H':
+            j = 0;
+            break;
+        case 'M':
+            j = 1;
+            break;
+        case 'L':
+            j = 2;
+            break;
+        default:
+            break;
+    }
 	data->tid = ++tidMax;
 	data->state = kThreadReady;
 	data->cancel_mode = cancel_mode;
 	data->kill = 0;
 	data->job_name = malloc(strlen(job_name) + 1);// +1 mean append '\0' to job_name
 	strncpy(data->job_name, job_name, strlen(job_name) + 1);
-	data->base_priority = priority;
-	data->current_priority = priority;// Priority changes priority based on thread behavior
+	data->base_priority = j;
+	data->current_priority = j;// Priority changes priority based on thread behavior
 	data->wait_evnt = -1;
 	CreateContext(&data->thread_context, &timer_context, &RunTask);
 	InsertTailNode(ready_queue,data);
@@ -306,7 +323,7 @@ void OS2021_TestCancel(){
 
 void TimerCalc()
 {
-	ResetTimer(0);
+	ResetTimer(0);//RR
 	register TCB *ptr;
 	register TCB **p_ptr;
 	register TCB *running;
@@ -364,7 +381,7 @@ void TimerCalc()
 	}
 	if (((*running_thread) != NULL) && 
 		(*running_thread)->state == kThreadRunning) {
-			(*running_thread)->thread_time.runable_time -= 1;
+			(*running_thread)->thread_time.runable_time -= 10;
 			if ((*running_thread)->thread_time.runable_time <= 0) {
 				(*running_thread)->state = kThreadReady;
 				running = CutNode(ready_queue, running_thread);
@@ -444,11 +461,11 @@ void SigtStpHandler(){
 
 void StartSchedulingSimulation(){
 	signal(SIGTSTP,SigtStpHandler);
-	OS2021_ThreadCreate("reclaimer", "ResourceReclaim", 2, 1);
+	OS2021_ThreadCreate("reclaimer", "ResourceReclaim","L", 1);
 	/*Set Timer*/
-	Signaltimer.it_interval.tv_usec = 0;
 	Signaltimer.it_interval.tv_sec = 0;
-	ResetTimer(0);
+	Signaltimer.it_interval.tv_usec = 0;
+	//ResetTimer(0);
 	/*Create Context*/
 	CreateContext(&dispatch_context, &timer_context, &Dispatcher);
 	CreateContext(&timer_context, &dispatch_context, &TimerCalc);
