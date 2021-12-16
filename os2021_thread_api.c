@@ -181,6 +181,8 @@ int OS2021_ThreadCreate(char *job_name, char *p_function, char *priority, int ca
 }
 
 void OS2021_ThreadCancel(char *job_name){
+	register TCB *running;
+	running = (*running_thread);
 	register TCB **cancel_node = FindNode(ready_queue, job_name);
 	register TCB *ptr;
 	if(cancel_node){
@@ -188,9 +190,13 @@ void OS2021_ThreadCancel(char *job_name){
 		if(ptr->cancel_mode == 1){
 			ptr->kill = 1;
 		}else{
-			ptr = CutNode(ready_queue, cancel_node);
+            ptr = CutNode(ready_queue,
+            cancel_node);
 			ptr->state = kThreadTerminated;
 			InsertTailNode(terminate_queue, ptr);
+            if(!strcmp(running->job_name,job_name)){
+                swapcontext(&running->thread_context,&timer_context);
+            }
 		}
 	}else{
 		cancel_node	= FindNode(waiting_queue, job_name);
@@ -202,6 +208,9 @@ void OS2021_ThreadCancel(char *job_name){
 				ptr = CutNode(waiting_queue, cancel_node);
 				ptr->state = kThreadTerminated;
 				InsertTailNode(terminate_queue, ptr);
+                if(!strcmp(running->job_name,job_name)){
+                    swapcontext(&running->thread_context,&timer_context);
+                }
 			}
 		}else{
 			cancel_node	= FindNode(event_queue, job_name);
@@ -213,6 +222,9 @@ void OS2021_ThreadCancel(char *job_name){
 					ptr = CutNode(event_queue, cancel_node);
 					ptr->state = kThreadTerminated;
 					InsertTailNode(terminate_queue, ptr);
+                    if(!strcmp(running->job_name,job_name)){
+                        swapcontext(&running->thread_context,&timer_context);
+                    }
 				}
 			}
 
