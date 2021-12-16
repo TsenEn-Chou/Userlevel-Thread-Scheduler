@@ -258,13 +258,13 @@ void OS2021_ThreadWaitEvent(int event_id){
 
 void OS2021_ThreadSetEvent(int event_id){
 	int i;
-	bool have;
+	bool have = 0;
 	register TCB **ptr;
 	register TCB *tmp = (*running_thread) ;
 	for(i = 0;i < 3; i++){
 		if(CheckQueueHaveNode(event_queue,i)){
 			ptr = &(event_queue[i].head->next_tcb);
-			while(*ptr){
+			while(*ptr && !have){
 				if((*ptr)->wait_evnt == event_id){
 					have = 1;
 					(*ptr)->state = kThreadReady;
