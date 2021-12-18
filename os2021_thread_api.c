@@ -235,55 +235,59 @@ void OS2021_ThreadCancel(char *job_name){
 
 
 void OS2021_ThreadWaitEvent(int event_id){
-	register TCB *running;
-	int pr;
-	running = (*running_thread);
-	running->state = kThreadWaiting;
-	running->wait_evnt = event_id;
-	fprintf(stdout,"%s wants to wait for event %d\n", running->job_name,(*running_thread)->wait_evnt);
-	fflush(stdout);
-	running = CutNode(ready_queue, running_thread);
-	//Increase priority
-	if(running->thread_time.runable_time>0){
-		if(running->current_priority>0){
-			pr = running->current_priority;
-			running->current_priority -=1;
-			fprintf(stdout,"The priority of thread %s is changed from %s to %s\n",running->job_name, priority_str[pr] ,priority_str[running->current_priority]);
-			fflush(stdout);
-		}
-	}
-	InsertTailNode(event_queue,running);
-	swapcontext(&running->thread_context, &timer_context);
+    register TCB *running;
+    int pr;
+    if(event_id > -1 && event_id < 8){
+        running = (*running_thread);
+        running->state = kThreadWaiting;
+        running->wait_evnt = event_id;
+        fprintf(stdout,"%s wants to wait for event %d\n", running->job_name,(*running_thread)->wait_evnt);
+        fflush(stdout);
+        running = CutNode(ready_queue, running_thread);
+        //Increase priority
+        if(running->thread_time.runable_time>0){
+            if(running->current_priority>0){
+                pr = running->current_priority;
+                running->current_priority -=1;
+                fprintf(stdout,"The priority of thread %s is changed from %s to %s\n",running->job_name, priority_str[pr] ,priority_str[running->current_priority]);
+                fflush(stdout);
+            }
+        }
+        InsertTailNode(event_queue,running);
+        swapcontext(&running->thread_context, &timer_context);
+    }
 }
 
 void OS2021_ThreadSetEvent(int event_id){
-	int i;
-	bool have = 0;
-	register TCB **ptr;
-	register TCB *tmp = (*running_thread) ;
-	for(i = 0;i < 3; i++){
-		if(CheckQueueHaveNode(event_queue,i)){
-			ptr = &(event_queue[i].head->next_tcb);
-			while(*ptr && !have){
-				if((*ptr)->wait_evnt == event_id){
-					have = 1;
-					(*ptr)->state = kThreadReady;
-					fprintf(stdout,"%s changes the status of %s to READY \n", tmp->job_name,(*ptr)->job_name);
-					fflush(stdout);
-					(*ptr)->wait_evnt = -1;
-					tmp = CutNode(event_queue, ptr);
-					InsertTailNode(ready_queue,tmp);
-					break;
-				}
-				ptr = &(*ptr)->next_tcb;
-			}	
-		}
-	}
-	if(!have){
-		fprintf(stdout,"%s: No threads are waiting evnet%d\n",(*running_thread)->job_name ,event_id);
-		fflush(stdout);
-	}
-	have = 0;
+    if(event_id > -1 && event_id < 8){
+        int i;
+        bool have = 0;
+        register TCB **ptr;
+        register TCB *tmp = (*running_thread) ;
+        for(i = 0;i < 3; i++){
+            if(CheckQueueHaveNode(event_queue,i)){
+                ptr = &(event_queue[i].head->next_tcb);
+                while(*ptr && !have){
+                    if((*ptr)->wait_evnt == event_id){
+                        have = 1;
+                        (*ptr)->state = kThreadReady;
+                        fprintf(stdout,"%s changes the status of %s to READY \n", tmp->job_name,(*ptr)->job_name);
+                        fflush(stdout);
+                        (*ptr)->wait_evnt = -1;
+                        tmp = CutNode(event_queue, ptr);
+                        InsertTailNode(ready_queue,tmp);
+                        break;
+                    }
+                    ptr = &(*ptr)->next_tcb;
+                }	
+            }
+        }
+        if(!have){
+		    fprintf(stdout,"%s: No threads are waiting evnet%d\n",(*running_thread)->job_name ,event_id);
+		    fflush(stdout);
+	    }
+	    have = 0;
+    }
 }
 
 void OS2021_ThreadWaitTime(int msec){
