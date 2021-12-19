@@ -181,6 +181,7 @@ int OS2021_ThreadCreate(char *job_name, char *p_function, char *priority, int ca
 }
 
 void OS2021_ThreadCancel(char *job_name){
+	signal(SIGALRM, ResetTimer);
 	register TCB *running;
 	running = (*running_thread);
 	register TCB **cancel_node = FindNode(ready_queue, job_name);
@@ -230,7 +231,7 @@ void OS2021_ThreadCancel(char *job_name){
 
 		}
 	}
-	
+	signal(SIGALRM,AlarmHandler);
 }
 
 
@@ -328,6 +329,7 @@ void OS2021_DeallocateThreadResource(){
 }
 
 void OS2021_TestCancel(){
+    signal(SIGALRM,ResetTimer);
 	if((*running_thread)->kill){
 		register TCB *ptr = (*running_thread);
 		ptr = CutNode(ready_queue, running_thread);
@@ -335,6 +337,7 @@ void OS2021_TestCancel(){
 		InsertTailNode(terminate_queue, ptr);
 		swapcontext(&ptr->thread_context, &timer_context);
 	}
+    signal(SIGALRM,AlarmHandler);
 }
 
 void TimerCalc()
@@ -445,7 +448,7 @@ void ResetTimer(int a)
 	}
 }
 
-void ALARM_Handler(int a)
+void AlarmHandler(int a)
 {
 	int i = CheckBitMap(ready_queue);
 	int j = CheckBitMap(waiting_queue);
@@ -472,7 +475,7 @@ void SigtStpHandler(){
 	ListAllNode(event_queue);
 	printf("****************************************************************************************\n");
 	ResetTimer(0);
-	signal(SIGALRM,ALARM_Handler);
+	signal(SIGALRM,AlarmHandler);
 }
 
 void StartSchedulingSimulation(){
@@ -486,6 +489,6 @@ void StartSchedulingSimulation(){
 	CreateContext(&dispatch_context, &timer_context, &Dispatcher);
 	CreateContext(&timer_context, &dispatch_context, &TimerCalc);
 	ResetTimer(0);
-	signal(SIGALRM, ALARM_Handler);
+	signal(SIGALRM, AlarmHandler);
 	setcontext(&dispatch_context);
 }
