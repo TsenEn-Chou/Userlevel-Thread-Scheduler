@@ -3,3 +3,7 @@ simulator.dSYM/Contents/Resources/DWARF/simulator
 .vscode/settings.json
 .vscode/tasks.json
 *.o
+.vscode/targets.log
+.vscode/configurationCache.log
+simulator
+.vscode/dryrun.log
