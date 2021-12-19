@@ -1,6 +1,6 @@
 #include "function_libary.h"
-int min = 65408;
-int max = 65410;
+unsigned int x = 0;
+
 
 void Function1(void) 
 {
@@ -28,20 +28,18 @@ void Function1(void)
 void Function2(void) 
 {
 	int the_num;
+
+	int min = 65408;
+	int max = 65410;
 	
 	while (1) 
 	{
-		srand(time(NULL));
-		the_num = rand() % (max - min + 1) + min;
-		OS2021_TestCancel();
-		if(the_num == 65409)
+        x++;
+		if(x == 654090)
 		{
-			fprintf(stdout,"I found 65409.\n");
-			fflush(stdout);
 			OS2021_ThreadSetEvent(3);
 			min = 1;
-            max = 10;
-
+			max = 10;
 		}
 		OS2021_TestCancel();
 	}

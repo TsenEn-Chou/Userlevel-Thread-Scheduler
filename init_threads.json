@@ -4,11 +4,11 @@
 			"name" : "f1",
 			"entry function" : "Function1",
 			"priority": "M",
-			"cancel mode": "1"
+			"cancel mode": "0"
 		},
 		{
 			"name" : "f3",
-			"entry function" : "Function3",
+			"entry function" : "Function2",
 			"priority": "M",
 			"cancel mode": "0"
 		}
