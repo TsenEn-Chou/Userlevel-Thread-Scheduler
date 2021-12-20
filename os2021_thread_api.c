@@ -35,8 +35,9 @@ int tidMax = 0;
 
 
 struct itimerval Signaltimer;
-bool Simulating = false, Alarming = false;
-int pidMax = 0;
+sigset_t sigs;
+
+
 
 ucontext_t dispatch_context;
 ucontext_t report_context;
@@ -181,7 +182,7 @@ int OS2021_ThreadCreate(char *job_name, char *p_function, char *priority, int ca
 }
 
 void OS2021_ThreadCancel(char *job_name){
-	signal(SIGALRM, ResetTimer);
+    sigprocmask(SIG_BLOCK,&sigs,NULL);
 	register TCB *running;
 	running = (*running_thread);
 	register TCB **cancel_node = FindNode(ready_queue, job_name);
@@ -196,6 +197,7 @@ void OS2021_ThreadCancel(char *job_name){
 			ptr->state = kThreadTerminated;
 			InsertTailNode(terminate_queue, ptr);
             if(!strcmp(running->job_name,job_name)){
+                sigprocmask(SIG_UNBLOCK,&sigs,NULL);
                 swapcontext(&running->thread_context,&timer_context);
             }
 		}
@@ -210,6 +212,7 @@ void OS2021_ThreadCancel(char *job_name){
 				ptr->state = kThreadTerminated;
 				InsertTailNode(terminate_queue, ptr);
                 if(!strcmp(running->job_name,job_name)){
+                    sigprocmask(SIG_UNBLOCK,&sigs,NULL);
                     swapcontext(&running->thread_context,&timer_context);
                 }
 			}
@@ -224,6 +227,7 @@ void OS2021_ThreadCancel(char *job_name){
 					ptr->state = kThreadTerminated;
 					InsertTailNode(terminate_queue, ptr);
                     if(!strcmp(running->job_name,job_name)){
+                        sigprocmask(SIG_UNBLOCK,&sigs,NULL);
                         swapcontext(&running->thread_context,&timer_context);
                     }
 				}
@@ -231,7 +235,7 @@ void OS2021_ThreadCancel(char *job_name){
 
 		}
 	}
-	signal(SIGALRM,AlarmHandler);
+    sigprocmask(SIG_UNBLOCK,&sigs,NULL);
 }
 
 
@@ -329,15 +333,16 @@ void OS2021_DeallocateThreadResource(){
 }
 
 void OS2021_TestCancel(){
-    signal(SIGALRM,ResetTimer);
-	if((*running_thread)->kill){
-		register TCB *ptr = (*running_thread);
-		ptr = CutNode(ready_queue, running_thread);
-		ptr->state = kThreadTerminated;
-		InsertTailNode(terminate_queue, ptr);
-		swapcontext(&ptr->thread_context, &timer_context);
+    sigprocmask(SIG_BLOCK,&sigs,NULL);
+    register TCB *running = (*running_thread);
+    if(running->kill){
+		running = CutNode(ready_queue, running_thread);
+		running->state = kThreadTerminated;
+		InsertTailNode(terminate_queue, running);
+        sigprocmask(SIG_UNBLOCK,&sigs,NULL);
+		swapcontext(&running->thread_context, &timer_context);
 	}
-    signal(SIGALRM,AlarmHandler);
+    sigprocmask(SIG_UNBLOCK,&sigs,NULL);
 }
 
 void TimerCalc()
@@ -484,7 +489,9 @@ void StartSchedulingSimulation(){
 	/*Set Timer*/
 	Signaltimer.it_interval.tv_sec = 0;
 	Signaltimer.it_interval.tv_usec = 0;
-	//ResetTimer(0);
+    sigemptyset(&sigs);
+    sigaddset(&sigs,SIGALRM);
+    sigaddset(&sigs,SIGTSTP);
 	/*Create Context*/
 	CreateContext(&dispatch_context, &timer_context, &Dispatcher);
 	CreateContext(&timer_context, &dispatch_context, &TimerCalc);
