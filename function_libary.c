@@ -1,6 +1,7 @@
+
 #include "function_libary.h"
-int min = 65408;
-int max = 65410;
+unsigned int x = 0;
+
 
 void Function1(void) 
 {
@@ -21,26 +22,26 @@ void Function1(void)
 
 		((i>0) ? OS2021_ThreadCancel("random_1"): "");
 		((j>0) ? OS2021_ThreadCancel("random_2"): "");
-		while(1);
+        OS2021_ThreadCancel("f1");
 	}
 }
 
 void Function2(void) 
 {
 	int the_num;
-	
+    int min = 65405;
+    int max = 65410;
+    int flag = 0;
 	while (1) 
 	{
-		srand(time(NULL));
-		the_num = rand() % (max - min + 1) + min;
-		OS2021_TestCancel();
+	    srand((unsigned)time(NULL));
+		(!flag) ? the_num = rand() % (max - min + 1) + min: (the_num=0) ;
 		if(the_num == 65409)
 		{
+            flag = 1;
 			fprintf(stdout,"I found 65409.\n");
 			fflush(stdout);
 			OS2021_ThreadSetEvent(3);
-			min = 1;
-            max = 10;
 
 		}
 		OS2021_TestCancel();
@@ -49,35 +50,53 @@ void Function2(void)
 
 void Function3(void)
 {
+    int odd = 1;
 	while(1)
 	{
-		OS2021_ThreadWaitEvent(3);
-		fprintf(stdout,"I fell in love with the operating system.\n");
+		fprintf(stdout,"Wait event%d.\n",odd);
 		fflush(stdout);
+		OS2021_ThreadWaitEvent(odd);
+        odd +=2;
+        if( odd == 9 ){
+            while (1);
+        }
 	}
 }
 
 void Function4(void)
 {
-
+    int odd = 1;
+    int even = 2;
 	while(1)
 	{
 		OS2021_ThreadWaitTime(500);
-		fprintf(stdout,"I found 65409.\n");
+		fprintf(stdout,"Set even%d.\n",odd);
 		fflush(stdout);
-		OS2021_ThreadSetEvent(7);
+		OS2021_ThreadSetEvent(odd);
+        odd += 2;
+		OS2021_ThreadWaitTime(500);
+		fprintf(stdout,"Set even%d.\n",even);
+	    fflush(stdout);
+        OS2021_ThreadSetEvent(even);
+        even += 2;
+        if( odd == 9 && even == 10){
+            while (1);
+        }
 	}
 }
 
 void Function5(void)
 {
+    int even = 2;
 	while(1)
 	{
-		OS2021_ThreadWaitEvent(7);
-		fprintf(stdout,"I fell in love with the operating system.\n");
+		fprintf(stdout,"Wait event%d.\n",even);
 		fflush(stdout);
-        while(1);
-		//OS2021_ThreadWaitTime(86400000);
+		OS2021_ThreadWaitEvent(even);
+        even +=2;
+        if( even == 10 ){
+            while (1);
+        }
 	}
 }
 

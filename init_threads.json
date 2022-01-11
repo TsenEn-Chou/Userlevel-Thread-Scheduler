@@ -8,7 +8,7 @@
 		},
 		{
 			"name" : "f3",
-			"entry function" : "Function2",
+			"entry function" : "Function3",
 			"priority": "M",
 			"cancel mode": "0"
 		}
