@@ -65,7 +65,7 @@ As mentioned above, Threads need to define the entry function, which is the thre
 The scheduling policy for threads is a 
 **3-level Non-preemptive Priority Feedback Queue**
 
-![3-level Non-preemptive Priority Feedback Queue](https://i.imgur.com/NkcebMB.png =300x)
+![3-level Non-preemptive Priority Feedback Queue](https://i.imgur.com/NkcebMB.png)
 
 * **Three priority level**
     * H – Round Robin(RR) with Time Quantum(TQ) 100ms
@@ -73,13 +73,12 @@ The scheduling policy for threads is a
     * L – RR with TQ 300ms
 
 
-![](https://i.imgur.com/AjymuhK.gif =600x)
+![](https://i.imgur.com/AjymuhK.gif)
 
 
 If a thread with a higher priority than the currently running thread enters the ready queue, it must wait for the running thread to run out of TQ or voluntarily give up the CPU before switching to a higher thread.
 
-![](https://i.imgur.com/DlTi4Ic.gif =600x)
-
+![adjpri](https://github.com/TsenEn-Chou/Userlevel-Thread-Scheduler/blob/472da087e09d07c477476206b3bc59787ca4ef32/adjpri.gif)
 
 
 If the thread gives up the CPU without running out of its TQ (Wait time or event), it increases its priority by one level.
